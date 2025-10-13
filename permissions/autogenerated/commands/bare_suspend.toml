@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-bare-suspend"
+description = "Enables the bare_suspend command without any pre-configured scope."
+commands.allow = ["bare_suspend"]
+
+[[permission]]
+identifier = "deny-bare-suspend"
+description = "Denies the bare_suspend command without any pre-configured scope."
+commands.deny = ["bare_suspend"]

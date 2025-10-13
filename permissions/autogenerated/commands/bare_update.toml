@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-bare-update"
+description = "Enables the bare_update command without any pre-configured scope."
+commands.allow = ["bare_update"]
+
+[[permission]]
+identifier = "deny-bare-update"
+description = "Denies the bare_update command without any pre-configured scope."
+commands.deny = ["bare_update"]

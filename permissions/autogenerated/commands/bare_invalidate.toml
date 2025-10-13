@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-bare-invalidate"
+description = "Enables the bare_invalidate command without any pre-configured scope."
+commands.allow = ["bare_invalidate"]
+
+[[permission]]
+identifier = "deny-bare-invalidate"
+description = "Denies the bare_invalidate command without any pre-configured scope."
+commands.deny = ["bare_invalidate"]

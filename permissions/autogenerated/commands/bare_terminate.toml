@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-bare-terminate"
+description = "Enables the bare_terminate command without any pre-configured scope."
+commands.allow = ["bare_terminate"]
+
+[[permission]]
+identifier = "deny-bare-terminate"
+description = "Denies the bare_terminate command without any pre-configured scope."
+commands.deny = ["bare_terminate"]
