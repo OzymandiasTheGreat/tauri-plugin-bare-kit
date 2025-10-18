@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "identifier": "com.tauri.dev",
   "build": {
-    "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build",
-    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "npx expo start --clear",
+    "beforeBuildCommand": "npx expo export --platform web",
+    "devUrl": "http://localhost:8081",
     "frontendDist": "../dist"
   },
   "app": {

@@ -27,6 +27,7 @@
     "bare-events": "^2.8.0",
     "bare-link": "^1.4.6",
     "cmake-fetch": "^1.4.7",
+    "events": "npm:bare-events@^2.8.0",
     "streamx": "^2.23.0"
   },
   "devDependencies": {
