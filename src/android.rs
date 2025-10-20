@@ -1,15 +1,19 @@
-use std::{collections::HashMap, mem::MaybeUninit, os::raw::c_void, ptr::null_mut, slice};
+use std::{collections::HashMap, ffi::CString, os::raw::c_void, ptr::null_mut, slice};
 
 use tauri::{Runtime, WebviewWindow};
 
 use crate::bindings::*;
+
+struct Looper(*mut ALooper);
+
+unsafe impl Send for Looper {}
 
 pub struct BareKitWorklet<R: Runtime> {
     worklet: *mut bare_worklet_t,
     ipc: *mut bare_ipc_t,
     poll: *mut bare_ipc_poll_t,
 
-    on_poll: i32,
+    on_poll: u32,
     window: Option<WebviewWindow<R>>,
 
     started: bool,
@@ -21,7 +25,7 @@ unsafe impl<R: Runtime> Send for BareKitWorklet<R> {}
 unsafe impl<R: Runtime> Sync for BareKitWorklet<R> {}
 
 impl<R: Runtime> BareKitWorklet<R> {
-    fn init(memory_limit: i32, assets: Option<String>, on_poll: i32) -> Self {
+    fn init(memory_limit: i32, assets: Option<String>, on_poll: u32) -> Self {
         let mut worklet: *mut bare_worklet_t = null_mut();
         let err = unsafe { bare_worklet_alloc(&mut worklet) };
         assert!(err == 0);
@@ -59,30 +63,26 @@ impl<R: Runtime> BareKitWorklet<R> {
         bare_kit_worklet
     }
 
-    fn start(&mut self, filename: String, source: Option<Vec<u8>>, args: Vec<String>) {
+    fn start(&mut self, looper: &Looper, filename: String, source: String, args: Vec<String>) {
         if self.started || self.terminated {
             return;
         }
 
         self.started = true;
 
-        let source = match source {
-            Some(mut src) => {
-                let mut buffer = uv_buf_t {
-                    base: src.as_mut_ptr(),
-                    len: src.len(),
-                };
-                &mut buffer as *mut _
-            }
-            None => null_mut(),
+        let bytes = CString::new(source).unwrap();
+        let bytelen = bytes.count_bytes();
+        let buffer = uv_buf_t {
+            base: bytes.into_raw(),
+            len: bytelen,
         };
         let mut argv: Vec<*const u8> = args.iter().map(|s| s.as_ptr()).collect();
         let err = unsafe {
             bare_worklet_start(
                 self.worklet,
                 filename.as_ptr(),
-                source,
-                None,
+                &buffer,
+                Some(on_free::<R>),
                 null_mut(),
                 argv.len() as i32,
                 argv.as_mut_ptr(),
@@ -95,6 +95,10 @@ impl<R: Runtime> BareKitWorklet<R> {
 
         let err = unsafe { bare_ipc_poll_init(self.poll, self.ipc) };
         assert!(err == 0);
+
+        let mut poll = unsafe { *self.poll };
+        unsafe { ALooper_release(poll.looper) };
+        poll.looper = looper.0;
     }
 
     fn read(&mut self) -> Option<Vec<u8>> {
@@ -103,15 +107,15 @@ impl<R: Runtime> BareKitWorklet<R> {
         }
 
         let mut len: usize = 0;
-        let mut data = MaybeUninit::<u8>::uninit();
-        let err = unsafe { bare_ipc_read(self.ipc, data.as_mut_ptr() as *mut _, &mut len) };
+        let mut data = null_mut();
+        let err = unsafe { bare_ipc_read(self.ipc, &mut data, &mut len) };
         assert!(err == 0 || err == bare_ipc_would_block);
 
         if err == bare_ipc_would_block {
             return None;
         }
 
-        unsafe { Some(slice::from_raw_parts(data.as_mut_ptr(), len).to_vec()) }
+        unsafe { Some(slice::from_raw_parts(data as *mut u8, len).to_vec()) }
     }
 
     fn write(&mut self, data: Option<Vec<u8>>) -> i32 {
@@ -216,15 +220,30 @@ unsafe extern "C" fn on_poll<R: Runtime>(poll: *mut bare_ipc_poll_t, events: i32
     }
 }
 
+unsafe extern "C" fn on_free<R: Runtime>(
+    _worklet: *mut bare_worklet_t,
+    source: *const uv_buf_t,
+    _data: *mut c_void,
+) {
+    let buffer = *source;
+    drop(CString::from_raw(buffer.base));
+}
+
 pub struct BareKitModule<R: Runtime> {
     id: i32,
+    looper: Looper,
     worklets: HashMap<i32, BareKitWorklet<R>>,
 }
 
 impl<R: Runtime> BareKitModule<R> {
     pub fn init() -> Self {
+        let looper = Looper(unsafe { ALooper_forThread() });
+
+        unsafe { ALooper_acquire(looper.0) };
+
         Self {
             id: 0,
+            looper,
             worklets: HashMap::new(),
         }
     }
@@ -236,7 +255,7 @@ impl<R: Runtime> BareKitModule<R> {
         self.worklets.clear();
     }
 
-    pub fn new(&mut self, memory_limit: i32, assets: Option<String>, on_poll: i32) -> i32 {
+    pub fn new(&mut self, memory_limit: i32, assets: Option<String>, on_poll: u32) -> i32 {
         self.id += 1;
 
         let worklet = BareKitWorklet::init(memory_limit, assets, on_poll);
@@ -245,9 +264,9 @@ impl<R: Runtime> BareKitModule<R> {
         self.id
     }
 
-    pub fn start(&mut self, id: i32, filename: String, source: Option<Vec<u8>>, argv: Vec<String>) {
+    pub fn start(&mut self, id: i32, filename: String, source: String, argv: Vec<String>) {
         if let Some(worklet) = self.worklets.get_mut(&id) {
-            worklet.start(filename, source, argv);
+            worklet.start(&self.looper, filename, source, argv);
         }
     }
 

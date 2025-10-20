@@ -5,6 +5,15 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-ping`
+- `allow-bare-invalidate`
+- `allow-bare-new`
+- `allow-bare-start`
+- `allow-bare-read`
+- `allow-bare-write`
+- `allow-bare-update`
+- `allow-bare-suspend`
+- `allow-bare-resume`
+- `allow-bare-terminate`
 
 ## Permission Table
 

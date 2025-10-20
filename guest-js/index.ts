@@ -39,8 +39,11 @@ class BareKitIPC extends Duplex {
   }
 
   _open(callback: Callback) {
-    if (this._worklet.started) callback(null)
-    else this._pendingOpen = callback
+    if (this._worklet.started) {
+      callback(null)
+    } else {
+      this._pendingOpen = callback
+    }
   }
 
   _update() {
@@ -61,7 +64,7 @@ class BareKitIPC extends Duplex {
     NativeBareKit.read(this._worklet.handle)
       .then((data) => {
         if (data) {
-          this.push(data)
+          this.push(b4a.from(data))
           callback(null)
         } else {
           this._pendingRead = callback
@@ -72,6 +75,10 @@ class BareKitIPC extends Duplex {
   }
 
   _write(data: Uint8Array, callback: Callback) {
+    if (!b4a.isBuffer(data)) {
+      data = b4a.from(data)
+    }
+
     NativeBareKit.write(this._worklet.handle, data)
       .then((written) => {
         if (written === data.byteLength) callback(null)
@@ -171,11 +178,7 @@ class BareKitWorklet extends EventEmitter {
     return (this._state & CONSTANTS.SUSPENDED) !== 0
   }
 
-  async start(
-    filename: string,
-    source: string | Uint8Array | null | string[],
-    args: string[] = [],
-  ) {
+  async start(filename: string, source: string, args: string[] = []) {
     if (this.started) throw new Error("Worklet has already been started")
     if (this.terminated) throw new Error("Worklet has been terminated")
 
@@ -183,11 +186,6 @@ class BareKitWorklet extends EventEmitter {
       throw new TypeError(
         `Filename must be a string. Received type ${typeof filename} (${filename})`,
       )
-    }
-
-    if (Array.isArray(source)) {
-      args = source
-      source = null
     }
 
     if (source !== null && typeof source !== "string" && !ArrayBuffer.isView(source)) {
@@ -204,15 +202,7 @@ class BareKitWorklet extends EventEmitter {
 
     let err: any = null
     try {
-      if (source !== null) {
-        if (typeof source === "string") {
-          source = b4a.from(source)
-        }
-
-        await NativeBareKit.start(this._handle, filename, source, args)
-      } else {
-        await NativeBareKit.start(this._handle, filename, null, args)
-      }
+      await NativeBareKit.start(this._handle, filename, source, args)
 
       this._source = source
       this._state |= CONSTANTS.STARTED
@@ -227,6 +217,8 @@ class BareKitWorklet extends EventEmitter {
     this._ipc._continueOpen(err)
 
     if (err) throw err
+
+    await this.resume()
   }
 
   async suspend(linger = -1) {
@@ -293,6 +285,7 @@ class BareKitWorklet extends EventEmitter {
 }
 
 export const Worklet = BareKitWorklet
+export type Worklet = BareKitWorklet
 
 export async function ping(value: string): Promise<string | null> {
   return await invoke<{ value?: string }>("plugin:bare-kit|ping", {

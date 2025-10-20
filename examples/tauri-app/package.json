@@ -13,16 +13,20 @@
     "@expo/metro-config": "~54.0.2",
     "@expo/metro-runtime": "~6.1.2",
     "@tauri-apps/api": "^2.0.0",
+    "b4a": "^1.7.3",
+    "bare-rpc": "^1.0.0",
     "expo": "~54.0.13",
     "expo-status-bar": "~3.0.8",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.4",
     "react-native-web": "^0.21.0",
+    "sodium-native": "^5.0.9",
     "tauri-plugin-bare-kit-api": "file:../../"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.0.0",
+    "@types/b4a": "^1.6.5",
     "@types/react": "~19.1.0",
     "typescript": "~5.9.2"
   },

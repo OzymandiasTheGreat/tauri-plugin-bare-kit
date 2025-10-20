@@ -29,7 +29,7 @@ pub struct WorkletResponse {
 pub struct NewRequest {
     pub memory_limit: i32,
     pub assets: Option<String>,
-    pub on_poll: i32,
+    pub on_poll: u32,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -37,7 +37,7 @@ pub struct NewRequest {
 pub struct StartRequest {
     pub id: i32,
     pub filename: String,
-    pub source: Option<Vec<u8>>,
+    pub source: String,
     pub argv: Vec<String>,
 }
 

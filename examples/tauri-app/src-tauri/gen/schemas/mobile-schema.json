@@ -177,10 +177,10 @@
       "description": "Permission identifier",
       "oneOf": [
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`\n- `allow-bare-invalidate`\n- `allow-bare-new`\n- `allow-bare-start`\n- `allow-bare-read`\n- `allow-bare-write`\n- `allow-bare-update`\n- `allow-bare-suspend`\n- `allow-bare-resume`\n- `allow-bare-terminate`",
           "type": "string",
           "const": "bare-kit:default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`\n- `allow-bare-invalidate`\n- `allow-bare-new`\n- `allow-bare-start`\n- `allow-bare-read`\n- `allow-bare-write`\n- `allow-bare-update`\n- `allow-bare-suspend`\n- `allow-bare-resume`\n- `allow-bare-terminate`"
         },
         {
           "description": "Enables the bare_invalidate command without any pre-configured scope.",

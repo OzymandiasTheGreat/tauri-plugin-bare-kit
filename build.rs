@@ -103,6 +103,8 @@ fn build<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<PathBuf> {
         "android",
         "--arch",
         arch,
+        "-D",
+        "ANDROID_STL=c++_shared",
     ];
 
     if env::var("DEBUG")? == "true" {
