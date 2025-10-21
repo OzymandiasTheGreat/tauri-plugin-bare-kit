@@ -112,12 +112,12 @@ export default function App() {
       await worklet.start("/app.bundle", bundleSource)
 
       const { IPC } = worklet
-      IPC.on("error", (err: Error) => console.error(err))
-      IPC.on("data", (data: string) => console.log("TAURI RECEIVED", data))
-      IPC.write("Hello from React Native!")
-      // const rpc = new RPC(IPC, (req) => {})
+      // IPC.on("error", (err: Error) => console.error(err))
+      // IPC.on("data", (data: string) => console.log("TAURI RECEIVED", data))
+      // IPC.write("Hello from React Native!")
+      const rpc = new RPC(IPC as any, (req) => {})
 
-      // run(rpc)
+      await run(rpc)
     })
 
     return () => {

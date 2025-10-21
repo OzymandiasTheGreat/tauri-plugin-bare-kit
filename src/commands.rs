@@ -1,5 +1,4 @@
-use tauri::WebviewWindow;
-use tauri::{command, AppHandle, Runtime};
+use tauri::{command, AppHandle, Runtime, WebviewWindow};
 
 use crate::models::*;
 use crate::BareKitExt;
@@ -21,9 +20,10 @@ pub(crate) fn bare_invalidate<R: Runtime>(app: AppHandle<R>, _payload: ()) -> Re
 #[command]
 pub(crate) fn bare_new<R: Runtime>(
     app: AppHandle<R>,
+    window: WebviewWindow<R>,
     payload: NewRequest,
 ) -> Result<WorkletResponse> {
-    app.bare_kit().lock().unwrap().new(payload)
+    app.bare_kit().lock().unwrap().new(window, payload)
 }
 
 #[command]
@@ -48,12 +48,8 @@ pub(crate) fn bare_write<R: Runtime>(
 }
 
 #[command]
-pub(crate) fn bare_update<R: Runtime>(
-    app: AppHandle<R>,
-    window: WebviewWindow<R>,
-    payload: UpdateRequest,
-) -> Result<()> {
-    app.bare_kit().lock().unwrap().update(window, payload)
+pub(crate) fn bare_update<R: Runtime>(app: AppHandle<R>, payload: UpdateRequest) -> Result<()> {
+    app.bare_kit().lock().unwrap().update(payload)
 }
 
 #[command]

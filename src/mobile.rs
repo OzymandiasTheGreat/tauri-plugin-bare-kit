@@ -21,7 +21,7 @@ pub fn init<R: Runtime, C: DeserializeOwned>(
 ) -> crate::Result<Mutex<BareKit<R>>> {
     #[cfg(target_os = "android")]
     let handle = api.register_android_plugin("sh.quince.bare_kit", "ExamplePlugin")?;
-    let module = BareKitModule::<R>::init();
+    let module = BareKitModule::init();
     #[cfg(target_os = "ios")]
     let handle = api.register_ios_plugin(init_plugin_bare_kit)?;
     Ok(Mutex::new(BareKit { handle, module }))
@@ -30,7 +30,7 @@ pub fn init<R: Runtime, C: DeserializeOwned>(
 /// Access to the bare-kit APIs.
 pub struct BareKit<R: Runtime> {
     handle: PluginHandle<R>,
-    module: BareKitModule<R>,
+    module: BareKitModule,
 }
 
 impl<R: Runtime> BareKit<R> {
@@ -41,14 +41,21 @@ impl<R: Runtime> BareKit<R> {
     }
 
     pub fn invalidate(&mut self) -> crate::Result<()> {
-        self.module.invalidate();
+        self.module.invalidate::<R>();
         Ok(())
     }
 
-    pub fn new(&mut self, payload: NewRequest) -> crate::Result<WorkletResponse> {
-        let id = self
-            .module
-            .new(payload.memory_limit, payload.assets, payload.on_poll);
+    pub fn new(
+        &mut self,
+        window: WebviewWindow<R>,
+        payload: NewRequest,
+    ) -> crate::Result<WorkletResponse> {
+        let id = self.module.new(
+            window,
+            payload.memory_limit,
+            payload.assets,
+            payload.on_poll,
+        );
         Ok(WorkletResponse { data: id })
     }
 
@@ -68,13 +75,9 @@ impl<R: Runtime> BareKit<R> {
         Ok(WorkletResponse { data })
     }
 
-    pub fn update(
-        &mut self,
-        window: WebviewWindow<R>,
-        payload: UpdateRequest,
-    ) -> crate::Result<()> {
+    pub fn update(&mut self, payload: UpdateRequest) -> crate::Result<()> {
         self.module
-            .update(window, payload.id, payload.readable, payload.writable);
+            .update::<R>(payload.id, payload.readable, payload.writable);
         Ok(())
     }
 
@@ -89,7 +92,7 @@ impl<R: Runtime> BareKit<R> {
     }
 
     pub fn terminate(&mut self, payload: WorkletRequest) -> crate::Result<()> {
-        self.module.terminate(payload.id);
+        self.module.terminate::<R>(payload.id);
         Ok(())
     }
 }

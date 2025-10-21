@@ -8,24 +8,32 @@ struct Looper(*mut ALooper);
 
 unsafe impl Send for Looper {}
 
-pub struct BareKitWorklet<R: Runtime> {
+struct PollData<R: Runtime> {
+    window: WebviewWindow<R>,
+    callback_id: u32,
+}
+
+#[derive(Clone, Debug)]
+pub struct BareKitWorklet {
     worklet: *mut bare_worklet_t,
     ipc: *mut bare_ipc_t,
     poll: *mut bare_ipc_poll_t,
-
-    on_poll: u32,
-    window: Option<WebviewWindow<R>>,
 
     started: bool,
     terminated: bool,
 }
 
-unsafe impl<R: Runtime> Send for BareKitWorklet<R> {}
+unsafe impl Send for BareKitWorklet {}
 
-unsafe impl<R: Runtime> Sync for BareKitWorklet<R> {}
+unsafe impl Sync for BareKitWorklet {}
 
-impl<R: Runtime> BareKitWorklet<R> {
-    fn init(memory_limit: i32, assets: Option<String>, on_poll: u32) -> Self {
+impl BareKitWorklet {
+    fn init<R: Runtime>(
+        window: WebviewWindow<R>,
+        memory_limit: i32,
+        assets: Option<String>,
+        callback_id: u32,
+    ) -> Self {
         let mut worklet: *mut bare_worklet_t = null_mut();
         let err = unsafe { bare_worklet_alloc(&mut worklet) };
         assert!(err == 0);
@@ -38,16 +46,20 @@ impl<R: Runtime> BareKitWorklet<R> {
         let err = unsafe { bare_ipc_poll_alloc(&mut poll) };
         assert!(err == 0);
 
-        let mut bare_kit_worklet = Self {
+        let data = PollData {
+            window,
+            callback_id,
+        };
+        let data = Box::<PollData<R>>::into_raw(Box::new(data));
+        unsafe { bare_ipc_poll_set_data(poll, data as *mut _) };
+
+        let bare_kit_worklet = Self {
             worklet,
             ipc,
             poll,
-            on_poll,
-            window: None,
             started: false,
             terminated: false,
         };
-        unsafe { bare_ipc_poll_set_data(poll, &mut bare_kit_worklet as *mut _ as *mut c_void) };
 
         let options: bare_worklet_options_t = bare_worklet_options_s {
             memory_limit: memory_limit as usize,
@@ -82,7 +94,7 @@ impl<R: Runtime> BareKitWorklet<R> {
                 self.worklet,
                 filename.as_ptr(),
                 &buffer,
-                Some(on_free::<R>),
+                Some(on_free),
                 null_mut(),
                 argv.len() as i32,
                 argv.as_mut_ptr(),
@@ -134,7 +146,7 @@ impl<R: Runtime> BareKitWorklet<R> {
         err
     }
 
-    fn update(&mut self, window: WebviewWindow<R>, readable: bool, writable: bool) {
+    fn update<R: Runtime>(&mut self, readable: bool, writable: bool) {
         if self.terminated {
             return;
         }
@@ -147,8 +159,6 @@ impl<R: Runtime> BareKitWorklet<R> {
         if writable {
             events |= bare_ipc_writable;
         }
-
-        self.window = Some(window);
 
         if events > 0 {
             let err = unsafe { bare_ipc_poll_start(self.poll, events as i32, Some(on_poll::<R>)) };
@@ -177,7 +187,7 @@ impl<R: Runtime> BareKitWorklet<R> {
         assert!(err == 0);
     }
 
-    fn terminate(&mut self) {
+    fn terminate<R: Runtime>(&mut self) {
         if self.terminated {
             return;
         }
@@ -188,7 +198,12 @@ impl<R: Runtime> BareKitWorklet<R> {
             let err = unsafe { bare_worklet_terminate(self.worklet) };
             assert!(err == 0);
 
-            unsafe { bare_ipc_poll_destroy(self.poll) };
+            unsafe {
+                let poll = *(self.poll);
+                let data = Box::from_raw(poll.data as *mut PollData<R>);
+                bare_ipc_poll_destroy(self.poll);
+                drop(data);
+            };
             unsafe { bare_ipc_destroy(self.ipc) };
 
             // TODO: think of a safe way to `free()` these pointers
@@ -204,23 +219,19 @@ impl<R: Runtime> BareKitWorklet<R> {
 }
 
 unsafe extern "C" fn on_poll<R: Runtime>(poll: *mut bare_ipc_poll_t, events: i32) {
-    let poll = unsafe { *poll };
-    let worklet_ptr = poll.data as *mut BareKitWorklet<R>;
-    let worklet = unsafe { &mut *worklet_ptr };
+    let data = unsafe { &mut *(bare_ipc_poll_get_data(poll) as *mut PollData<R>) };
 
-    if let Some(window) = &worklet.window {
-        window
-            .eval(format!(
-                "window.__TAURI_INTERNALS__.runCallback({}, {}, {})",
-                worklet.on_poll,
-                (events as u32 & bare_ipc_readable) != 0,
-                (events as u32 & bare_ipc_writable) != 0,
-            ))
-            .unwrap();
-    }
+    data.window
+        .eval(format!(
+            "window.__TAURI_INTERNALS__.runCallback({}, {}, {})",
+            data.callback_id,
+            (events as u32 & bare_ipc_readable) != 0,
+            (events as u32 & bare_ipc_writable) != 0,
+        ))
+        .unwrap();
 }
 
-unsafe extern "C" fn on_free<R: Runtime>(
+unsafe extern "C" fn on_free(
     _worklet: *mut bare_worklet_t,
     source: *const uv_buf_t,
     _data: *mut c_void,
@@ -229,13 +240,13 @@ unsafe extern "C" fn on_free<R: Runtime>(
     drop(CString::from_raw(buffer.base));
 }
 
-pub struct BareKitModule<R: Runtime> {
+pub struct BareKitModule {
     id: i32,
     looper: Looper,
-    worklets: HashMap<i32, BareKitWorklet<R>>,
+    worklets: HashMap<i32, BareKitWorklet>,
 }
 
-impl<R: Runtime> BareKitModule<R> {
+impl BareKitModule {
     pub fn init() -> Self {
         let looper = Looper(unsafe { ALooper_forThread() });
 
@@ -248,17 +259,23 @@ impl<R: Runtime> BareKitModule<R> {
         }
     }
 
-    pub fn invalidate(&mut self) {
+    pub fn invalidate<R: Runtime>(&mut self) {
         for (_, worklet) in &mut self.worklets {
-            worklet.terminate();
+            worklet.terminate::<R>();
         }
         self.worklets.clear();
     }
 
-    pub fn new(&mut self, memory_limit: i32, assets: Option<String>, on_poll: u32) -> i32 {
+    pub fn new<R: Runtime>(
+        &mut self,
+        window: WebviewWindow<R>,
+        memory_limit: i32,
+        assets: Option<String>,
+        poll_callback_id: u32,
+    ) -> i32 {
         self.id += 1;
 
-        let worklet = BareKitWorklet::init(memory_limit, assets, on_poll);
+        let worklet = BareKitWorklet::init(window, memory_limit, assets, poll_callback_id);
         self.worklets.insert(self.id, worklet);
 
         self.id
@@ -286,9 +303,9 @@ impl<R: Runtime> BareKitModule<R> {
         return bare_ipc_error;
     }
 
-    pub fn update(&mut self, window: WebviewWindow<R>, id: i32, readable: bool, writable: bool) {
+    pub fn update<R: Runtime>(&mut self, id: i32, readable: bool, writable: bool) {
         if let Some(worklet) = self.worklets.get_mut(&id) {
-            return worklet.update(window, readable, writable);
+            return worklet.update::<R>(readable, writable);
         }
     }
 
@@ -304,9 +321,9 @@ impl<R: Runtime> BareKitModule<R> {
         }
     }
 
-    pub fn terminate(&mut self, id: i32) {
+    pub fn terminate<R: Runtime>(&mut self, id: i32) {
         if let Some(worklet) = self.worklets.get_mut(&id) {
-            return worklet.terminate();
+            return worklet.terminate::<R>();
         }
     }
 }
