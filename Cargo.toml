@@ -1,7 +1,7 @@
 [package]
 name = "tauri-plugin-bare-kit"
 version = "0.1.0"
-authors = [ "You" ]
+authors = ["You"]
 description = ""
 edition = "2021"
 rust-version = "1.77.2"
@@ -12,6 +12,10 @@ links = "tauri-plugin-bare-kit"
 tauri = { version = "2.8.5" }
 serde = "1.0"
 thiserror = "2"
+
+[target.'cfg(target_vendor = "apple")'.dependencies]
+objc = "0.2.7"
+block = "0.1.6"
 
 [build-dependencies]
 bindgen = "0.72.1"

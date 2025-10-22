@@ -13,7 +13,6 @@ struct PollData<R: Runtime> {
     callback_id: u32,
 }
 
-#[derive(Clone, Debug)]
 pub struct BareKitWorklet {
     worklet: *mut bare_worklet_t,
     ipc: *mut bare_ipc_t,

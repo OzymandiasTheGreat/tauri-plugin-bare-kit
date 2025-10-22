@@ -5,30 +5,70 @@ use std::{
 };
 
 fn main() {
+    let platform = env::var("CARGO_CFG_TARGET_OS").unwrap();
     let bin_dir = PathBuf::from(env::var("DEP_TAURI_PLUGIN_BARE_KIT_INSTALL_DIR").unwrap());
     let lib_dir = link_addons();
 
+    if platform == "ios" || platform == "macos" {
+        println!("cargo::rustc-link-arg=-Wl,-rpath,@executable_path/Frameworks");
+    }
+
     copy_dir_all(&bin_dir, &lib_dir);
 
-    println!("cargo::rustc-link-search=native={}", lib_dir.display());
+    match &*platform {
+        "android" | "linux" => {
+            println!("cargo::rustc-link-search=native={}", lib_dir.display());
 
-    for lib in fs::read_dir(&lib_dir).unwrap().filter_map(|l| l.ok()) {
-        let filepath = lib.path();
-        let filename = filepath.file_stem().unwrap().to_str().unwrap();
-        let libname = filename.strip_prefix("lib").unwrap_or(filename);
+            for lib in fs::read_dir(&lib_dir).unwrap().filter_map(|l| l.ok()) {
+                let filepath = lib.path();
+                let filename = filepath.file_stem().unwrap().to_str().unwrap();
+                let libname = filename.strip_prefix("lib").unwrap_or(filename);
 
-        // Don't link libs provided by tauri/android
-        if libname == "tauri_app_lib" || libname == "c++_shared" {
-            continue;
+                // Don't link libs provided by tauri/android
+                if libname == "tauri_app_lib" || libname == "c++_shared" {
+                    continue;
+                }
+
+                println!("cargo::rustc-link-lib={}", libname);
+            }
         }
+        "ios" | "macos" => {
+            println!("cargo::rustc-link-search=framework={}", lib_dir.display());
 
-        println!("cargo::rustc-link-lib={}", libname);
+            for framework in fs::read_dir(&lib_dir).unwrap().filter_map(|f| f.ok()) {
+                let libpath = framework.path();
+                let libname = libpath.file_stem().unwrap().to_str().unwrap();
+
+                println!("cargo::rustc-link-lib=framework={}", libname);
+            }
+        }
+        _ => (),
+    }
+
+    if platform == "linux" || platform == "macos" || platform == "windows" {
+        let cargo_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+        let resources = lib_dir.strip_prefix(cargo_dir).unwrap();
+        let dest = if platform == "macos" {
+            "Frameworks"
+        } else {
+            "lib"
+        };
+
+        env::set_var(
+            "TAURI_CONFIG",
+            format!(
+                "{{ \"bundle\": {{ \"resources\": {{ \"{}\": \"{}\" }} }} }}",
+                resources.display(),
+                dest
+            ),
+        );
     }
 
     tauri_build::build()
 }
 
 fn link_addons() -> PathBuf {
+    let rust_platform = env::var("CARGO_CFG_TARGET_OS").unwrap();
     let rust_arch = &*env::var("CARGO_CFG_TARGET_ARCH").unwrap();
     let android_abi = match rust_arch {
         "arm" => "armeabi-v7a",
@@ -37,11 +77,16 @@ fn link_addons() -> PathBuf {
     };
     let cargo_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let node_dir = node_root(&cargo_dir);
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap()).join("addons");
-    let dest_dir = cargo_dir
-        .join("gen/android/app/src/main/jniLibs")
-        .join(android_abi);
-    let rust_platform = env::var("CARGO_CFG_TARGET_OS").unwrap();
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let tmp_dir = out_dir.join("addons");
+    let dest_dir = match &*rust_platform {
+        "android" => cargo_dir
+            .join("gen/android/app/src/main/jniLibs")
+            .join(android_abi),
+        "ios" => cargo_dir.join("gen/apple/Frameworks"),
+        "macos" => out_dir.join("Frameworks"),
+        _ => todo!("More platforms"),
+    };
     let platform = match &*rust_platform {
         "macos" => "darwin",
         "windows" => "win32",
@@ -53,7 +98,15 @@ fn link_addons() -> PathBuf {
         "x86_64" => "x64",
         rest => rest,
     };
-    let target = format!("{platform}-{arch}"); // TODO: account for simulator
+    let simulator = env::var("CARGO_CFG_TARGET_ABI").unwrap() == "sim";
+    let target = format!("{platform}-{arch}");
+    let target = target + if simulator { "-simulator" } else { "" };
+    let needs = match &*rust_platform {
+        "android" | "linux" => "libbare-kit.so",
+        "ios" | "macos" => "BareKit.framework",
+        "windows" => "bare-kit.dll",
+        _ => todo!("Proper error"),
+    };
     let runner = "npx"; // TODO: account for windows extensions
 
     assert!(Command::new(runner)
@@ -63,9 +116,9 @@ fn link_addons() -> PathBuf {
             "--target",
             &*target,
             "--needs",
-            "libbare-kit.so", // TODO: account for other platforms
+            needs,
             "--out",
-            out_dir.to_str().unwrap(),
+            tmp_dir.to_str().unwrap(),
         ])
         .status()
         .unwrap()
@@ -73,11 +126,28 @@ fn link_addons() -> PathBuf {
 
     fs::create_dir_all(&dest_dir).unwrap();
 
-    if out_dir.exists() {
-        let bin_dir = out_dir.join(android_abi);
+    if tmp_dir.exists() {
+        match &*rust_platform {
+            "android" => {
+                let bin_dir = tmp_dir.join(android_abi);
 
-        for addon in fs::read_dir(&bin_dir).unwrap().filter_map(|a| a.ok()) {
-            fs::copy(addon.path(), dest_dir.join(addon.file_name())).unwrap();
+                for addon in fs::read_dir(&bin_dir).unwrap().filter_map(|a| a.ok()) {
+                    fs::copy(addon.path(), dest_dir.join(addon.file_name())).unwrap();
+                }
+            }
+            "ios" | "macos" => {
+                for addon in fs::read_dir(&tmp_dir).unwrap().filter_map(|a| a.ok()) {
+                    let filepath = match &*rust_platform {
+                        "ios" if !simulator => addon.path().join(format!("ios-{arch}")),
+                        "ios" if simulator => addon.path().join(format!("ios-{arch}-simulator")),
+                        "macos" => addon.path().join(format!("macos-{arch}")),
+                        _ => todo!("Proper error"),
+                    };
+
+                    copy_dir_all(&filepath, &dest_dir);
+                }
+            }
+            _ => todo!("More platforms"),
         }
     }
 

@@ -10,6 +10,8 @@ use crate::models::*;
 
 #[cfg(target_os = "android")]
 use crate::android::BareKitModule;
+#[cfg(target_vendor = "apple")]
+use crate::apple::BareKitModule;
 
 #[cfg(target_os = "ios")]
 tauri::ios_plugin_binding!(init_plugin_bare_kit);

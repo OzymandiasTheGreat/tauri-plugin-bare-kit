@@ -44,23 +44,34 @@ impl From<&str> for Error {
 fn main() -> Result<()> {
     let source_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
     let out_dir = PathBuf::from(env::var("OUT_DIR")?);
+    let platform = env::var("CARGO_CFG_TARGET_OS")?;
+    let install = build(&source_dir, &out_dir)?.join(if platform == "ios" || platform == "macos" {
+        "Frameworks"
+    } else {
+        "lib"
+    });
 
-    let install = build(&source_dir, &out_dir)?.join("lib");
-    let ndk = env::var("ANDROID_NDK_HOME")?;
-    let host = match env::consts::OS {
-        "macos" => "darwin-x86_64",
-        "linux" => "linux-x86_64",
-        "windows" => "windows-x86_64",
-        _ => return Err("Unsupported host operating system".into()),
+    match &*platform {
+        "android" => {
+            let ndk = env::var("ANDROID_NDK_HOME")?;
+            let host = match env::consts::OS {
+                "macos" => "darwin-x86_64",
+                "linux" => "linux-x86_64",
+                "windows" => "windows-x86_64",
+                _ => return Err("Unsupported host operating system".into()),
+            };
+            let rust_target = env::var("TARGET")?;
+            let target = match &*rust_target {
+                "armv7-linux-androideabi" => "arm-linux-androideabi",
+                rest => rest,
+            };
+            let stl = format!(
+                "{ndk}/toolchains/llvm/prebuilt/{host}/sysroot/usr/lib/{target}/libc++_shared.so"
+            );
+            fs::copy(stl, install.join("libc++_shared.so"))?;
+        }
+        _ => (),
     };
-    let rust_target = env::var("TARGET")?;
-    let target = match &*rust_target {
-        "armv7-linux-androideabi" => "arm-linux-androideabi",
-        rest => rest,
-    };
-    let stl =
-        format!("{ndk}/toolchains/llvm/prebuilt/{host}/sysroot/usr/lib/{target}/libc++_shared.so");
-    fs::copy(stl, install.join("libc++_shared.so"))?;
 
     generate_bindings(&source_dir, &out_dir)?;
 
@@ -80,6 +91,12 @@ fn build<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<PathBuf> {
     let build = out.join("build");
     let install = out.join(INSTALL_DIR);
 
+    let platform = env::var("CARGO_CFG_TARGET_OS")?;
+    let platform = match &*platform {
+        "macos" => "darwin",
+        "windows" => "win32",
+        rest => rest,
+    };
     let arch = match &*env::var("CARGO_CFG_TARGET_ARCH")? {
         "arm" => "arm",
         "aarch64" => "arm64",
@@ -87,7 +104,6 @@ fn build<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<PathBuf> {
         "x86_64" => "x64",
         _ => return Err("Unsupported target architecture".into()),
     };
-
     // TODO: windows needs extension
     let runner = "npx";
     let make = "bare-make";
@@ -99,16 +115,22 @@ fn build<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<PathBuf> {
         "--build",
         build.to_str().unwrap(),
         "--platform",
-        // TODO: ios, etc.
-        "android",
+        platform,
         "--arch",
         arch,
-        "-D",
-        "ANDROID_STL=c++_shared",
     ];
+
+    #[cfg(target_vendor = "apple")]
+    if env::var("CARGO_CFG_TARGET_ABI")? == "sim" {
+        args.push("--simulator");
+    }
 
     if env::var("DEBUG")? == "true" {
         args.push("--debug");
+    }
+
+    if platform == "android" {
+        args.append(&mut vec!["-D", "ANDROID_STL=c++_shared"]);
     }
 
     assert!(Command::new(runner).args(args).status()?.success());
@@ -139,32 +161,80 @@ fn build<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<PathBuf> {
 }
 
 fn generate_bindings<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<()> {
-    let source = source_dir.as_ref();
+    let _source = source_dir.as_ref();
     let out = out_dir.as_ref();
-    let header = source.join("include/bare-kit.h");
+    let target = env::var("CARGO_CFG_TARGET_OS")?;
 
-    let ndk = env::var("ANDROID_NDK_HOME")?;
-    let host = match env::consts::OS {
-        "macos" => "darwin-x86_64",
-        "linux" => "linux-x86_64",
-        "windows" => "windows-x86_64",
-        _ => return Err("Unsupported host operating system".into()),
+    let header = match &*target {
+        "android" => _source.join("include/bare-kit.h"),
+        "ios" | "macos" => out.join(format!(
+            "{INSTALL_DIR}/Frameworks/BareKit.framework/Headers/BareKit.h"
+        )),
+        _ => return Err("Unexpected target".into()),
     };
-    let sysroot = format!("{ndk}/toolchains/llvm/prebuilt/{host}/sysroot");
 
-    let args = vec![
-        "--sysroot".to_owned(),
-        sysroot,
-        format!(
-            "-I{}",
-            out.join(format!("{INSTALL_DIR}/include/include")).display()
-        ),
-    ];
+    let sysroot = match &*target {
+        "android" => {
+            let ndk = env::var("ANDROID_NDK_HOME")?;
+            let host = match env::consts::OS {
+                "linux" => "linux-x86_64",
+                "macos" => "darwin-x86_64",
+                "windows" => "windows-x86_64",
+                _ => return Err("Unrecognized host".into()),
+            };
+            format!("{ndk}/toolchains/llvm/prebuilt/{host}/sysroot")
+        }
+        "ios" | "macos" => {
+            let simulator = env::var("CARGO_CFG_TARGET_ABI")? == "sim";
+            let sdk = match &*target {
+                "ios" if !simulator => "iphoneos",
+                "ios" if simulator => "iphonesimulator",
+                "macos" => "macosx",
+                _ => return Err("Unexpected target".into()),
+            };
+            let output = Command::new("xcrun")
+                .args(["--show-sdk-path", "--sdk", sdk])
+                .output()?;
+            let output = String::from_utf8(output.stdout)?;
+            output.trim().to_owned()
+        }
+        _ => return Err("Unexpected target".into()),
+    };
+    let args = match &*target {
+        "android" => vec![
+            "--sysroot".to_owned(),
+            sysroot,
+            format!(
+                "-I{}",
+                out.join(format!("{INSTALL_DIR}/include/include")).display()
+            ),
+        ],
+        "ios" | "macos" => vec![
+            "-x".to_owned(),
+            "objective-c".to_owned(),
+            "-isysroot".to_owned(),
+            sysroot,
+        ],
+        _ => return Err("Unexpected target".into()),
+    };
 
     let bindings = bindgen::Builder::default()
         .header(header.to_str().unwrap())
-        .clang_args(args)
-        .blocklist_file(".*stdlib\\.h")
+        .clang_args(args);
+    let bindings = match &*target {
+        "android" => bindings.blocklist_file(".*stdlib\\.h"),
+        "ios" | "macos" => bindings
+            .generate_block(true)
+            .allowlist_type("IBareWorkletConfiguration")
+            .allowlist_type("IBareWorklet")
+            .allowlist_type("IBareIPC")
+            .allowlist_type("INSValue")
+            .allowlist_file(".*NSArray\\.h")
+            .allowlist_file(".*NSData\\.h")
+            .allowlist_file(".*NSString\\.h"),
+        _ => return Err("Unexpected target".into()),
+    };
+    let bindings = bindings
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()?;
     bindings.write_to_file(out.join("bindings.rs"))?;
