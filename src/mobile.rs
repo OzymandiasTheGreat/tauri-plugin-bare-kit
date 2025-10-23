@@ -23,9 +23,9 @@ pub fn init<R: Runtime, C: DeserializeOwned>(
 ) -> crate::Result<Mutex<BareKit<R>>> {
     #[cfg(target_os = "android")]
     let handle = api.register_android_plugin("sh.quince.bare_kit", "ExamplePlugin")?;
-    let module = BareKitModule::init();
     #[cfg(target_os = "ios")]
     let handle = api.register_ios_plugin(init_plugin_bare_kit)?;
+    let module = BareKitModule::init();
     Ok(Mutex::new(BareKit { handle, module }))
 }
 

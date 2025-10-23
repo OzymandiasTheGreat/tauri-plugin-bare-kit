@@ -15,6 +15,10 @@ extern "C"
 
   typedef struct bare_suspension_s bare_suspension_t;
 
+#ifdef __APPLE__
+#include "apple/suspension.h"
+#endif
+
 #ifdef __ANDROID__
 #include "android/suspension.h"
 #endif
@@ -164,6 +168,10 @@ extern "C"
 
 #ifdef __ANDROID__
 #include "android/ipc.h"
+#endif
+
+#ifdef __APPLE__
+#include "apple/ipc.h"
 #endif
 
   int bare_ipc_alloc(bare_ipc_t **result);

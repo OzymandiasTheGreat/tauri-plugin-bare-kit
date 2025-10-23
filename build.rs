@@ -161,17 +161,10 @@ fn build<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<PathBuf> {
 }
 
 fn generate_bindings<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<()> {
-    let _source = source_dir.as_ref();
+    let source = source_dir.as_ref();
     let out = out_dir.as_ref();
     let target = env::var("CARGO_CFG_TARGET_OS")?;
-
-    let header = match &*target {
-        "android" => _source.join("include/bare-kit.h"),
-        "ios" | "macos" => out.join(format!(
-            "{INSTALL_DIR}/Frameworks/BareKit.framework/Headers/BareKit.h"
-        )),
-        _ => return Err("Unexpected target".into()),
-    };
+    let header = source.join("include/bare-kit.h");
 
     let sysroot = match &*target {
         "android" => {
@@ -214,26 +207,18 @@ fn generate_bindings<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<()> 
             "objective-c".to_owned(),
             "-isysroot".to_owned(),
             sysroot,
+            format!(
+                "-I{}",
+                out.join(format!("{INSTALL_DIR}/include/include")).display()
+            ),
         ],
         _ => return Err("Unexpected target".into()),
     };
 
     let bindings = bindgen::Builder::default()
         .header(header.to_str().unwrap())
-        .clang_args(args);
-    let bindings = match &*target {
-        "android" => bindings.blocklist_file(".*stdlib\\.h"),
-        "ios" | "macos" => bindings
-            .generate_block(true)
-            .allowlist_type("IBareWorkletConfiguration")
-            .allowlist_type("IBareWorklet")
-            .allowlist_type("IBareIPC")
-            .allowlist_type("INSValue")
-            .allowlist_file(".*NSArray\\.h")
-            .allowlist_file(".*NSData\\.h")
-            .allowlist_file(".*NSString\\.h"),
-        _ => return Err("Unexpected target".into()),
-    };
+        .clang_args(args)
+        .blocklist_file(".*stdlib\\.h");
     let bindings = bindings
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()?;
