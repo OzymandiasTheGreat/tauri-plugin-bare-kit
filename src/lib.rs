@@ -7,10 +7,6 @@ use tauri::{
 
 pub use models::*;
 
-#[cfg(target_os = "android")]
-mod android;
-#[cfg(target_vendor = "apple")]
-mod apple;
 #[cfg(desktop)]
 mod desktop;
 #[cfg(mobile)]
@@ -20,6 +16,7 @@ mod bindings;
 mod commands;
 mod error;
 mod models;
+mod module;
 
 pub use error::{Error, Result};
 
@@ -45,13 +42,16 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
         .invoke_handler(tauri::generate_handler![
             commands::ping,
             commands::bare_invalidate,
-            commands::bare_new,
-            commands::bare_start,
+            commands::bare_init,
+            commands::bare_start_file,
+            commands::bare_start_utf8,
+            commands::bare_start_bytes,
             commands::bare_read,
             commands::bare_write,
             commands::bare_update,
             commands::bare_suspend,
             commands::bare_resume,
+            commands::bare_wakeup,
             commands::bare_terminate,
         ])
         .setup(|app, api| {

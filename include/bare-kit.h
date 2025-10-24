@@ -132,6 +132,8 @@ extern "C"
 
   int bare_worklet_resume(bare_worklet_t *worklet);
 
+  int bare_worklet_wakeup(bare_worklet_t *worklet, int deadline);
+
   int bare_worklet_terminate(bare_worklet_t *worklet);
 
   int bare_worklet_push(bare_worklet_t *worklet, bare_worklet_push_t *req, const uv_buf_t *payload, bare_worklet_push_cb cb);

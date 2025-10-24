@@ -1,12 +1,11 @@
-// const { IPC } = BareKit
-
-// IPC.on("error", (err) => console.error(err))
-// IPC.on("data", (data) => console.log("BARE RECEIVED", data))
-// IPC.write("Hello from Bare!")
-
+const { IPC } = BareKit
 const b4a = require("b4a")
 const RPC = require("bare-rpc")
 const sodium = require("sodium-native")
+
+// IPC.on("error", (err) => console.error(err))
+// IPC.on("data", (data) => console.log("BARE RECEIVED", b4a.toString(data)))
+// IPC.write("Hello from Bare!")
 
 const METHOD = {
   ENCRYPT: 0,
@@ -19,11 +18,8 @@ const NONCE = b4a.alloc(sodium.crypto_stream_NONCEBYTES)
 sodium.randombytes_buf(KEY)
 sodium.randombytes_buf(NONCE)
 
-const { IPC } = BareKit
-console.log("Hello, World, from BareKit!")
 const rpc = new RPC(IPC, (req) => {
   if (req.command === METHOD.ENCRYPT || req.command === METHOD.DECRYPT) {
-    console.log(`BARE DATA ${req.data}`)
     const response = b4a.alloc(req.data.byteLength)
     sodium.crypto_stream_xor(response, req.data, NONCE, KEY)
     req.reply(response)

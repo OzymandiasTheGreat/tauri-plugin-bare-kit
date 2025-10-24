@@ -7,13 +7,16 @@ use std::{
 const COMMANDS: &[&str] = &[
     "ping",
     "bare_invalidate",
-    "bare_new",
-    "bare_start",
+    "bare_init",
+    "bare_start_file",
+    "bare_start_utf8",
+    "bare_start_bytes",
     "bare_read",
     "bare_write",
     "bare_update",
     "bare_suspend",
     "bare_resume",
+    "bare_wakeup",
     "bare_terminate",
 ];
 
@@ -203,8 +206,6 @@ fn generate_bindings<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<()> 
             ),
         ],
         "ios" | "macos" => vec![
-            "-x".to_owned(),
-            "objective-c".to_owned(),
             "-isysroot".to_owned(),
             sysroot,
             format!(

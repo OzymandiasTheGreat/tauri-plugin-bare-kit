@@ -14,50 +14,48 @@ pub struct PingResponse {
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct WorkletRequest {
-    pub id: i32,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct WorkletResponse {
-    pub data: i32,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct NewRequest {
-    pub memory_limit: i32,
+pub struct InitRequest {
+    pub memory_limit: usize,
     pub assets: Option<String>,
     pub on_poll: u32,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct StartRequest {
-    pub id: i32,
+pub struct StartFileRequest {
+    pub id: u8,
     pub filename: String,
-    pub source: String,
-    pub argv: Vec<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ReadResponse {
-    pub data: Option<Vec<u8>>,
+    pub args: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct WriteRequest {
-    pub id: i32,
-    pub data: Option<Vec<u8>>,
+pub struct StartUTF8Request {
+    pub id: u8,
+    pub filename: String,
+    pub source: String,
+    pub args: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StartBytesRequest {
+    pub id: u8,
+    pub filename: String,
+    pub source: Vec<u8>,
+    pub args: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadRequest {
+    pub id: u8,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateRequest {
-    pub id: i32,
+    pub id: u8,
     pub readable: bool,
     pub writable: bool,
 }
@@ -65,6 +63,25 @@ pub struct UpdateRequest {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SuspendRequest {
-    pub id: i32,
+    pub id: u8,
     pub linger: i32,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ResumeRequest {
+    pub id: u8,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WakeupRequest {
+    pub id: u8,
+    pub deadline: i32,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TerminateRequest {
+    pub id: u8,
 }

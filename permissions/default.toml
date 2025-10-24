@@ -3,12 +3,15 @@ description = "Default permissions for the plugin"
 permissions = [
   "allow-ping",
   "allow-bare-invalidate",
-  "allow-bare-new",
-  "allow-bare-start",
+  "allow-bare-init",
+  "allow-bare-start-file",
+  "allow-bare-start-utf8",
+  "allow-bare-start-bytes",
   "allow-bare-read",
   "allow-bare-write",
   "allow-bare-update",
   "allow-bare-suspend",
   "allow-bare-resume",
+  "allow-bare-wakeup",
   "allow-bare-terminate",
 ]

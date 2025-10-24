@@ -1,4 +1,8 @@
-use tauri::{command, AppHandle, Runtime, WebviewWindow};
+use tauri::{
+    command,
+    ipc::{Request, Response},
+    AppHandle, Runtime, WebviewWindow,
+};
 
 use crate::models::*;
 use crate::BareKitExt;
@@ -13,56 +17,92 @@ pub(crate) async fn ping<R: Runtime>(
 }
 
 #[command]
-pub(crate) fn bare_invalidate<R: Runtime>(app: AppHandle<R>, _payload: ()) -> Result<()> {
+pub(crate) async fn bare_invalidate<R: Runtime>(app: AppHandle<R>) -> Result<()> {
     app.bare_kit().lock().unwrap().invalidate()
 }
 
 #[command]
-pub(crate) fn bare_new<R: Runtime>(
+pub(crate) async fn bare_init<R: Runtime>(
     app: AppHandle<R>,
     window: WebviewWindow<R>,
-    payload: NewRequest,
-) -> Result<WorkletResponse> {
-    app.bare_kit().lock().unwrap().new(window, payload)
+    payload: InitRequest,
+) -> Result<u8> {
+    app.bare_kit().lock().unwrap().init(window, payload)
 }
 
 #[command]
-pub(crate) fn bare_start<R: Runtime>(app: AppHandle<R>, payload: StartRequest) -> Result<()> {
-    app.bare_kit().lock().unwrap().start(payload)
-}
-
-#[command]
-pub(crate) fn bare_read<R: Runtime>(
+pub(crate) async fn bare_start_file<R: Runtime>(
     app: AppHandle<R>,
-    payload: WorkletRequest,
-) -> Result<ReadResponse> {
+    payload: StartFileRequest,
+) -> Result<()> {
+    app.bare_kit().lock().unwrap().start_file(payload)
+}
+
+#[command]
+pub(crate) async fn bare_start_utf8<R: Runtime>(
+    app: AppHandle<R>,
+    payload: StartUTF8Request,
+) -> Result<()> {
+    app.bare_kit().lock().unwrap().start_utf8(payload)
+}
+
+#[command]
+pub(crate) async fn bare_start_bytes<R: Runtime>(
+    app: AppHandle<R>,
+    payload: StartBytesRequest,
+) -> Result<()> {
+    app.bare_kit().lock().unwrap().start_bytes(payload)
+}
+
+#[command]
+pub(crate) async fn bare_read<R: Runtime>(
+    app: AppHandle<R>,
+    payload: ReadRequest,
+) -> Result<Response> {
     app.bare_kit().lock().unwrap().read(payload)
 }
 
 #[command]
-pub(crate) fn bare_write<R: Runtime>(
-    app: AppHandle<R>,
-    payload: WriteRequest,
-) -> Result<WorkletResponse> {
+pub(crate) async fn bare_write<R: Runtime>(app: AppHandle<R>, payload: Request<'_>) -> Result<i32> {
     app.bare_kit().lock().unwrap().write(payload)
 }
 
 #[command]
-pub(crate) fn bare_update<R: Runtime>(app: AppHandle<R>, payload: UpdateRequest) -> Result<()> {
+pub(crate) async fn bare_update<R: Runtime>(
+    app: AppHandle<R>,
+    payload: UpdateRequest,
+) -> Result<()> {
     app.bare_kit().lock().unwrap().update(payload)
 }
 
 #[command]
-pub(crate) fn bare_suspend<R: Runtime>(app: AppHandle<R>, payload: SuspendRequest) -> Result<()> {
+pub(crate) async fn bare_suspend<R: Runtime>(
+    app: AppHandle<R>,
+    payload: SuspendRequest,
+) -> Result<()> {
     app.bare_kit().lock().unwrap().suspend(payload)
 }
 
 #[command]
-pub(crate) fn bare_resume<R: Runtime>(app: AppHandle<R>, payload: WorkletRequest) -> Result<()> {
+pub(crate) async fn bare_resume<R: Runtime>(
+    app: AppHandle<R>,
+    payload: ResumeRequest,
+) -> Result<()> {
     app.bare_kit().lock().unwrap().resume(payload)
 }
 
 #[command]
-pub(crate) fn bare_terminate<R: Runtime>(app: AppHandle<R>, payload: WorkletRequest) -> Result<()> {
+pub(crate) async fn bare_wakeup<R: Runtime>(
+    app: AppHandle<R>,
+    payload: WakeupRequest,
+) -> Result<()> {
+    app.bare_kit().lock().unwrap().wakeup(payload)
+}
+
+#[command]
+pub(crate) async fn bare_terminate<R: Runtime>(
+    app: AppHandle<R>,
+    payload: TerminateRequest,
+) -> Result<()> {
     app.bare_kit().lock().unwrap().terminate(payload)
 }

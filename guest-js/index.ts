@@ -46,48 +46,44 @@ class BareKitIPC extends Duplex {
     }
   }
 
-  _update() {
-    NativeBareKit.update(
+  async _update() {
+    return NativeBareKit.update(
       this._worklet.handle,
       this._pendingRead !== null,
       this._pendingWrite !== null,
     )
   }
 
-  _poll(readable: boolean, writable: boolean) {
+  async _poll(data: { readable: boolean; writable: boolean }) {
     if (this._worklet.terminated) return
-    if (readable) this._continueRead()
-    if (writable) this._continueWrite()
+    if (data.readable) await this._continueRead()
+    if (data.writable) await this._continueWrite()
   }
 
-  _read(callback: Callback) {
-    NativeBareKit.read(this._worklet.handle)
-      .then((data) => {
-        if (data) {
-          this.push(b4a.from(data))
-          callback(null)
-        } else {
-          this._pendingRead = callback
-          this._update()
-        }
-      })
-      .catch((err) => this.destroy(err))
+  async _read(callback: Callback) {
+    const data = await NativeBareKit.read(this._worklet.handle)
+
+    if (data) {
+      this.push(data)
+      callback(null)
+    } else {
+      this._pendingRead = callback
+      await this._update()
+    }
   }
 
-  _write(data: Uint8Array, callback: Callback) {
+  async _write(data: Uint8Array, callback: Callback) {
     if (!b4a.isBuffer(data)) {
       data = b4a.from(data)
     }
 
-    NativeBareKit.write(this._worklet.handle, data)
-      .then((written) => {
-        if (written === data.byteLength) callback(null)
-        else {
-          this._pendingWrite = [data.subarray(written), callback]
-          this._update()
-        }
-      })
-      .catch((err) => this.destroy(err))
+    const written = await NativeBareKit.write(this._worklet.handle, data)
+
+    if (written === data.byteLength) callback(null)
+    else {
+      this._pendingWrite = [data.subarray(written), callback]
+      await this._update()
+    }
   }
 
   _continueOpen(err?: Error | null) {
@@ -100,20 +96,20 @@ class BareKitIPC extends Duplex {
     }
   }
 
-  _continueRead() {
+  async _continueRead() {
     if (this._pendingRead === null) return
     const callback = this._pendingRead
     this._pendingRead = null
-    this._update()
-    this._read(callback)
+    await this._update()
+    await this._read(callback)
   }
 
-  _continueWrite() {
+  async _continueWrite() {
     if (this._pendingWrite === null) return
     const [data, callback] = this._pendingWrite
     this._pendingWrite = null
-    this._update()
-    this._write(data, callback)
+    await this._update()
+    await this._write(data, callback)
   }
 }
 
@@ -121,18 +117,14 @@ class BareKitWorklet extends EventEmitter {
   protected static _worklets = new Set<BareKitWorklet>()
 
   protected _state: number
-  protected _source: string | Uint8Array | null
   protected _ipc: BareKitIPC
-  protected _inactiveTimeout: any
   protected _handle!: number
 
   constructor() {
     super()
 
     this._state = 0
-    this._source = null
     this._ipc = new BareKitIPC(this)
-    this._inactiveTimeout = null
   }
 
   static async init(
@@ -178,7 +170,7 @@ class BareKitWorklet extends EventEmitter {
     return (this._state & CONSTANTS.SUSPENDED) !== 0
   }
 
-  async start(filename: string, source: string, args: string[] = []) {
+  async start(filename: string, source: string | Uint8Array | null, args: string[] = []) {
     if (this.started) throw new Error("Worklet has already been started")
     if (this.terminated) throw new Error("Worklet has been terminated")
 
@@ -202,9 +194,14 @@ class BareKitWorklet extends EventEmitter {
 
     let err: any = null
     try {
-      await NativeBareKit.start(this._handle, filename, source, args)
+      if (typeof source === "string") {
+        await NativeBareKit.startUTF8(this._handle, filename, source, args)
+      } else if (source == null) {
+        await NativeBareKit.startFile(this._handle, filename, args)
+      } else {
+        await NativeBareKit.startBytes(this._handle, filename, source, args)
+      }
 
-      this._source = source
       this._state |= CONSTANTS.STARTED
 
       this.emit("start")
@@ -259,6 +256,27 @@ class BareKitWorklet extends EventEmitter {
     }
   }
 
+  async wakeup(deadline: number = 0) {
+    if (!this.started) throw new Error("Worklet has not been started")
+    if (this.terminated) throw new Error("Worklet has been terminated")
+
+    if (typeof deadline !== "number") {
+      throw new TypeError(
+        `Deadline time must be a number. Received type ${typeof deadline} (${deadline})`,
+      )
+    }
+
+    await NativeBareKit.wakeup(this._handle, deadline)
+
+    this.emit("wakeup")
+  }
+
+  static async wakeup(deadline: number) {
+    for (const worklet of this._worklets) {
+      await worklet.wakeup(deadline)
+    }
+  }
+
   async terminate() {
     if (this.terminated) return
 
@@ -267,7 +285,6 @@ class BareKitWorklet extends EventEmitter {
     if (this.started) await NativeBareKit.terminate(this._handle)
 
     this._state |= CONSTANTS.TERMINATED
-    this._source = null
     this._handle = -1
 
     BareKitWorklet._worklets.delete(this)

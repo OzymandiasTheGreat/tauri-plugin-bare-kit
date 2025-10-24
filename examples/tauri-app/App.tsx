@@ -52,14 +52,17 @@ async function run(rpc: RPC) {
       decrypt_request_stream.on("error", console.error)
       decrypt_response_stream.on("error", console.error)
       decrypt_response_stream.on("data", (data: any) => decrypt_response.push(data))
-      decrypt_response_stream.on("end", () => {
-        console.log(
-          `Decrypt result ${i} with length ${length} streaming: ${b4a.equals(
-            b4a.concat(payload),
-            b4a.concat(decrypt_response),
-          )}`,
-        )
-      })
+      const prom = new Promise<void>((resolve) =>
+        decrypt_response_stream.on("end", () => {
+          console.log(
+            `Decrypt result ${i} with length ${length} streaming: ${b4a.equals(
+              b4a.concat(payload),
+              b4a.concat(decrypt_response),
+            )}`,
+          )
+          resolve()
+        }),
+      )
 
       const encrypt_request = rpc.request(METHOD.ENCRYPT_STREAMING)
       const encrypt_request_stream = encrypt_request.createRequestStream()
@@ -89,6 +92,8 @@ async function run(rpc: RPC) {
       }
 
       encrypt_request_stream.end()
+
+      await prom
     }
   }
 }
@@ -116,17 +121,13 @@ export default function App() {
       // IPC.on("data", (data: any) => console.log("TAURI RECEIVED", b4a.toString(data)))
       // IPC.write("Hello from React Native!")
       const rpc = new RPC(IPC as any, (req) => {})
-
-      const start = Date.now()
       await run(rpc)
-      const end = Date.now() - start
-      console.log(`ROUND TRIP ${end / 1000}`)
     })
 
     return () => {
       worklet?.terminate()
     }
-  })
+  }, [])
 
   return (
     <View style={styles.container}>
