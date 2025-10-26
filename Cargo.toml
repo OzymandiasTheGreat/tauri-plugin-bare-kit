@@ -21,3 +21,8 @@ base64 = "0.22.1"
 bindgen = "0.72.1"
 tauri-plugin = { version = "2.4.0", features = ["build"] }
 thiserror = "2"
+
+[features]
+default = ["runtime"]
+build = []
+runtime = []

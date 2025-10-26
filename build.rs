@@ -1,9 +1,11 @@
+#[cfg(feature = "runtime")]
 use std::{
     env, fs,
     path::{Path, PathBuf},
     process::Command,
 };
 
+#[cfg(feature = "runtime")]
 const COMMANDS: &[&str] = &[
     "bare_invalidate",
     "bare_init",
@@ -19,10 +21,13 @@ const COMMANDS: &[&str] = &[
     "bare_terminate",
 ];
 
+#[cfg(feature = "runtime")]
 const INSTALL_DIR: &str = "install";
 
+#[cfg(feature = "runtime")]
 type Result<T> = std::result::Result<T, Error>;
 
+#[cfg(feature = "runtime")]
 #[derive(Debug, thiserror::Error)]
 enum Error {
     #[error("{0}")]
@@ -37,12 +42,17 @@ enum Error {
     Bindgen(#[from] bindgen::BindgenError),
 }
 
+#[cfg(feature = "runtime")]
 impl From<&str> for Error {
     fn from(value: &str) -> Self {
         Self::BareKit(value.into())
     }
 }
 
+#[cfg(not(feature = "runtime"))]
+fn main() {}
+
+#[cfg(feature = "runtime")]
 fn main() -> Result<()> {
     let source_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
     let out_dir = PathBuf::from(env::var("OUT_DIR")?);
@@ -84,6 +94,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "runtime")]
 fn build<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<PathBuf> {
     let source = source_dir.as_ref();
     let out = out_dir.as_ref();
@@ -159,6 +170,7 @@ fn build<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<PathBuf> {
     Ok(install)
 }
 
+#[cfg(feature = "runtime")]
 fn generate_bindings<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<()> {
     let source = source_dir.as_ref();
     let out = out_dir.as_ref();

@@ -3,10 +3,10 @@ use std::collections::HashMap;
 use serde::de::DeserializeOwned;
 use tauri::{plugin::PluginApi, AppHandle, Runtime, WebviewWindow};
 
-#[cfg(target_os = "android")]
-use crate::bindings::ALooper_forThread;
 use crate::error::Result;
-use crate::worklet::{BareWorklet, Looper};
+#[cfg(target_os = "android")]
+use crate::runtime::ffi::ALooper_forThread;
+use crate::runtime::worklet::{BareWorklet, Looper};
 
 pub struct BareKit<R: Runtime> {
     id: u8,

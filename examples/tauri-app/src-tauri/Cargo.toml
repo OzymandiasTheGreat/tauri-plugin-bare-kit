@@ -15,9 +15,11 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "2.4.1", default-features = false , features = [] }
+tauri-build = { version = "2.4.1", default-features = false, features = [] }
+tauri-plugin-bare-kit = { path = "../../../", default-features = false, features = [
+  "build",
+] }
 
 [dependencies]
 tauri = { version = "2.8.5", features = [] }
 tauri-plugin-bare-kit = { path = "../../../" }
-

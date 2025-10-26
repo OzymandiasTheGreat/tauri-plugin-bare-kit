@@ -14,7 +14,7 @@ use tauri::{Runtime, WebviewWindow};
 #[cfg(not(target_os = "android"))]
 use tokio::sync::Notify;
 
-use crate::bindings::*;
+use crate::runtime::ffi::*;
 
 #[cfg(target_os = "android")]
 pub struct Looper(pub *mut ALooper);

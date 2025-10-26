@@ -6,9 +6,9 @@ use tauri::ipc::{InvokeBody, Request, Response};
 
 use tauri::{command, AppHandle, Runtime, WebviewWindow};
 
-use crate::models::*;
-use crate::BareKitExt;
-use crate::Result;
+use crate::runtime::models::*;
+use crate::runtime::BareKitExt;
+use crate::runtime::Result;
 
 #[command]
 pub(crate) fn bare_invalidate<R: Runtime>(app: AppHandle<R>) -> Result<()> {
