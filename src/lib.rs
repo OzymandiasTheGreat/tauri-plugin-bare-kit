@@ -7,23 +7,16 @@ use tauri::{
 
 pub use models::*;
 
-#[cfg(desktop)]
-mod desktop;
-#[cfg(mobile)]
-mod mobile;
-
 mod bindings;
 mod commands;
 mod error;
 mod models;
 mod module;
+mod worklet;
 
 pub use error::{Error, Result};
 
-#[cfg(desktop)]
-use desktop::BareKit;
-#[cfg(mobile)]
-use mobile::BareKit;
+use module::BareKit;
 
 /// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the bare-kit APIs.
 pub trait BareKitExt<R: Runtime> {
@@ -57,11 +50,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             commands::bare_terminate,
         ])
         .setup(|app, api| {
-            #[cfg(mobile)]
-            let bare_kit = mobile::init(app, api)?;
-            #[cfg(desktop)]
-            let bare_kit = desktop::init(app, api)?;
-            app.manage(bare_kit);
+            let bare_kit = BareKit::new(app, api)?;
+            app.manage(Mutex::new(bare_kit));
             Ok(())
         })
         .build()
