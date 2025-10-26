@@ -1,3 +1,5 @@
+#[cfg(not(target_os = "android"))]
+use std::sync::Arc;
 use std::{
     collections::HashMap,
     ffi::CString,
@@ -5,7 +7,6 @@ use std::{
     os::raw::{c_char, c_void},
     ptr::null_mut,
     slice,
-    sync::Arc,
 };
 
 #[cfg(not(target_os = "android"))]
@@ -27,6 +28,7 @@ unsafe impl Send for Looper {}
 unsafe impl Sync for Looper {}
 
 struct PollData<R: Runtime> {
+    #[allow(dead_code)]
     worklet_id: u8,
     window: WebviewWindow<R>,
     callback_id: u32,

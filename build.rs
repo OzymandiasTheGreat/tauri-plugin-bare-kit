@@ -5,7 +5,6 @@ use std::{
 };
 
 const COMMANDS: &[&str] = &[
-    "ping",
     "bare_invalidate",
     "bare_init",
     "bare_start_file",
@@ -80,10 +79,7 @@ fn main() -> Result<()> {
 
     println!("cargo::metadata=INSTALL_DIR={}", install.display());
 
-    tauri_plugin::Builder::new(COMMANDS)
-        .android_path("android")
-        .ios_path("ios")
-        .build();
+    tauri_plugin::Builder::new(COMMANDS).build();
 
     Ok(())
 }

@@ -177,10 +177,10 @@
       "description": "Permission identifier",
       "oneOf": [
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`\n- `allow-bare-invalidate`\n- `allow-bare-init`\n- `allow-bare-start-file`\n- `allow-bare-start-utf8`\n- `allow-bare-start-bytes`\n- `allow-bare-read`\n- `allow-bare-write`\n- `allow-bare-update`\n- `allow-bare-suspend`\n- `allow-bare-resume`\n- `allow-bare-wakeup`\n- `allow-bare-terminate`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-bare-invalidate`\n- `allow-bare-init`\n- `allow-bare-start-file`\n- `allow-bare-start-utf8`\n- `allow-bare-start-bytes`\n- `allow-bare-read`\n- `allow-bare-write`\n- `allow-bare-update`\n- `allow-bare-suspend`\n- `allow-bare-resume`\n- `allow-bare-wakeup`\n- `allow-bare-terminate`",
           "type": "string",
           "const": "bare-kit:default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`\n- `allow-bare-invalidate`\n- `allow-bare-init`\n- `allow-bare-start-file`\n- `allow-bare-start-utf8`\n- `allow-bare-start-bytes`\n- `allow-bare-read`\n- `allow-bare-write`\n- `allow-bare-update`\n- `allow-bare-suspend`\n- `allow-bare-resume`\n- `allow-bare-wakeup`\n- `allow-bare-terminate`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-bare-invalidate`\n- `allow-bare-init`\n- `allow-bare-start-file`\n- `allow-bare-start-utf8`\n- `allow-bare-start-bytes`\n- `allow-bare-read`\n- `allow-bare-write`\n- `allow-bare-update`\n- `allow-bare-suspend`\n- `allow-bare-resume`\n- `allow-bare-wakeup`\n- `allow-bare-terminate`"
         },
         {
           "description": "Enables the bare_init command without any pre-configured scope.",
@@ -195,12 +195,6 @@
           "markdownDescription": "Enables the bare_invalidate command without any pre-configured scope."
         },
         {
-          "description": "Enables the bare_new command without any pre-configured scope.",
-          "type": "string",
-          "const": "bare-kit:allow-bare-new",
-          "markdownDescription": "Enables the bare_new command without any pre-configured scope."
-        },
-        {
           "description": "Enables the bare_read command without any pre-configured scope.",
           "type": "string",
           "const": "bare-kit:allow-bare-read",
@@ -211,12 +205,6 @@
           "type": "string",
           "const": "bare-kit:allow-bare-resume",
           "markdownDescription": "Enables the bare_resume command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the bare_start command without any pre-configured scope.",
-          "type": "string",
-          "const": "bare-kit:allow-bare-start",
-          "markdownDescription": "Enables the bare_start command without any pre-configured scope."
         },
         {
           "description": "Enables the bare_start_bytes command without any pre-configured scope.",
@@ -267,12 +255,6 @@
           "markdownDescription": "Enables the bare_write command without any pre-configured scope."
         },
         {
-          "description": "Enables the ping command without any pre-configured scope.",
-          "type": "string",
-          "const": "bare-kit:allow-ping",
-          "markdownDescription": "Enables the ping command without any pre-configured scope."
-        },
-        {
           "description": "Denies the bare_init command without any pre-configured scope.",
           "type": "string",
           "const": "bare-kit:deny-bare-init",
@@ -285,12 +267,6 @@
           "markdownDescription": "Denies the bare_invalidate command without any pre-configured scope."
         },
         {
-          "description": "Denies the bare_new command without any pre-configured scope.",
-          "type": "string",
-          "const": "bare-kit:deny-bare-new",
-          "markdownDescription": "Denies the bare_new command without any pre-configured scope."
-        },
-        {
           "description": "Denies the bare_read command without any pre-configured scope.",
           "type": "string",
           "const": "bare-kit:deny-bare-read",
@@ -301,12 +277,6 @@
           "type": "string",
           "const": "bare-kit:deny-bare-resume",
           "markdownDescription": "Denies the bare_resume command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the bare_start command without any pre-configured scope.",
-          "type": "string",
-          "const": "bare-kit:deny-bare-start",
-          "markdownDescription": "Denies the bare_start command without any pre-configured scope."
         },
         {
           "description": "Denies the bare_start_bytes command without any pre-configured scope.",
@@ -355,12 +325,6 @@
           "type": "string",
           "const": "bare-kit:deny-bare-write",
           "markdownDescription": "Denies the bare_write command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the ping command without any pre-configured scope.",
-          "type": "string",
-          "const": "bare-kit:deny-ping",
-          "markdownDescription": "Denies the ping command without any pre-configured scope."
         },
         {
           "description": "Default core plugins set.\n#### This default permission set includes:\n\n- `core:path:default`\n- `core:event:default`\n- `core:window:default`\n- `core:webview:default`\n- `core:app:default`\n- `core:image:default`\n- `core:resources:default`\n- `core:menu:default`\n- `core:tray:default`",

@@ -12,14 +12,6 @@ declare global {
   }
 }
 
-export async function nativePing(value: string): Promise<string | null> {
-  return await invoke<{ value?: string }>("plugin:bare-kit|ping", {
-    payload: {
-      value,
-    },
-  }).then((r) => (r.value ? r.value : null))
-}
-
 type on_poll_callback = ((data: { readable: boolean; writable: boolean }) => void) | null
 
 export default class NativeBareKit {

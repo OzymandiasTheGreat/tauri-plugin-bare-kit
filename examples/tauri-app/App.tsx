@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useState } from "react"
-import { Button, StyleSheet, Text, TextInput, View } from "react-native"
+import React, { useEffect } from "react"
+import { StyleSheet, Text, View } from "react-native"
 import { StatusBar } from "expo-status-bar"
 import b4a from "b4a"
 import RPC from "bare-rpc"
-import { ping, Worklet } from "tauri-plugin-bare-kit-api"
+import { Worklet } from "tauri-plugin-bare-kit-api"
 import bundleSource from "./bare/app.bundle.json"
 
 const METHOD = {
@@ -99,16 +99,6 @@ async function run(rpc: RPC) {
 }
 
 export default function App() {
-  const [request, setRequest] = useState("")
-  const [response, setResponse] = useState("")
-
-  const onPress = useCallback(() => {
-    const payload = request.trim() ? request.trim() : "PING"
-    ping(payload)
-      .then((res) => setResponse(`[${new Date().toLocaleTimeString()}] ${res}`))
-      .catch((err) => setResponse(`ERROR: ${err.message}`))
-  }, [request])
-
   useEffect(() => {
     let worklet: Worklet | null = null
 
@@ -131,9 +121,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <TextInput onChangeText={setRequest} value={request} style={styles.input} />
-      <Button title="PING" onPress={onPress} />
-      <Text>{response}</Text>
+      <Text>BareKit FTW!</Text>
       <StatusBar style="auto" />
     </View>
   )
@@ -146,12 +134,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 16,
-  },
-  input: {
-    width: 256,
-    height: 24,
-    borderColor: "#000",
-    borderWidth: 1,
-    borderRadius: 8,
   },
 })

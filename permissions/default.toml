@@ -1,7 +1,6 @@
 [default]
 description = "Default permissions for the plugin"
 permissions = [
-  "allow-ping",
   "allow-bare-invalidate",
   "allow-bare-init",
   "allow-bare-start-file",

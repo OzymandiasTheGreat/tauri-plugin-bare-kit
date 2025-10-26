@@ -8,14 +8,6 @@ use crate::BareKitExt;
 use crate::Result;
 
 #[command]
-pub(crate) async fn ping<R: Runtime>(
-    app: AppHandle<R>,
-    payload: PingRequest,
-) -> Result<PingResponse> {
-    app.bare_kit().lock().unwrap().ping(payload)
-}
-
-#[command]
 pub(crate) fn bare_invalidate<R: Runtime>(app: AppHandle<R>) -> Result<()> {
     app.bare_kit().lock().unwrap().invalidate()
 }

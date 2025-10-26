@@ -7,44 +7,27 @@ use tauri::ipc::{InvokeBody, Request, Response};
 use base64::{prelude::BASE64_STANDARD, Engine};
 
 use serde::de::DeserializeOwned;
-use tauri::{
-    plugin::{PluginApi, PluginHandle},
-    AppHandle, Runtime, WebviewWindow,
-};
+use tauri::{plugin::PluginApi, AppHandle, Runtime, WebviewWindow};
 
 use crate::error::Result;
 use crate::models::*;
 use crate::module::BareModule;
 
-#[cfg(target_os = "ios")]
-tauri::ios_plugin_binding!(init_plugin_bare_kit);
-
-// initializes the Kotlin or Swift plugin classes
 pub fn init<R: Runtime, C: DeserializeOwned>(
     _app: &AppHandle<R>,
-    api: PluginApi<R, C>,
+    _api: PluginApi<R, C>,
 ) -> Result<Mutex<BareKit<R>>> {
-    #[cfg(target_os = "android")]
-    let handle = api.register_android_plugin("sh.quince.bare_kit", "ExamplePlugin")?;
-    #[cfg(target_os = "ios")]
-    let handle = api.register_ios_plugin(init_plugin_bare_kit)?;
     let module = BareModule::new();
-    Ok(Mutex::new(BareKit { handle, module }))
+
+    Ok(Mutex::new(BareKit { module }))
 }
 
 /// Access to the bare-kit APIs.
 pub struct BareKit<R: Runtime> {
-    handle: PluginHandle<R>,
     module: BareModule<R>,
 }
 
 impl<R: Runtime> BareKit<R> {
-    pub fn ping(&self, payload: PingRequest) -> Result<PingResponse> {
-        self.handle
-            .run_mobile_plugin("ping", payload)
-            .map_err(Into::into)
-    }
-
     pub fn invalidate(&mut self) -> Result<()> {
         self.module.invalidate();
         Ok(())

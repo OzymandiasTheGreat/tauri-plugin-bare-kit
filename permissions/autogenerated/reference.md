@@ -4,7 +4,6 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-ping`
 - `allow-bare-invalidate`
 - `allow-bare-init`
 - `allow-bare-start-file`
@@ -82,32 +81,6 @@ Denies the bare_invalidate command without any pre-configured scope.
 <tr>
 <td>
 
-`bare-kit:allow-bare-new`
-
-</td>
-<td>
-
-Enables the bare_new command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`bare-kit:deny-bare-new`
-
-</td>
-<td>
-
-Denies the bare_new command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `bare-kit:allow-bare-read`
 
 </td>
@@ -153,32 +126,6 @@ Enables the bare_resume command without any pre-configured scope.
 <td>
 
 Denies the bare_resume command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`bare-kit:allow-bare-start`
-
-</td>
-<td>
-
-Enables the bare_start command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`bare-kit:deny-bare-start`
-
-</td>
-<td>
-
-Denies the bare_start command without any pre-configured scope.
 
 </td>
 </tr>
@@ -387,32 +334,6 @@ Enables the bare_write command without any pre-configured scope.
 <td>
 
 Denies the bare_write command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`bare-kit:allow-ping`
-
-</td>
-<td>
-
-Enables the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`bare-kit:deny-ping`
-
-</td>
-<td>
-
-Denies the ping command without any pre-configured scope.
 
 </td>
 </tr>

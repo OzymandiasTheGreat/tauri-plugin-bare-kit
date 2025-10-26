@@ -43,7 +43,6 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::new("bare-kit")
         .js_init_script(init_js)
         .invoke_handler(tauri::generate_handler![
-            commands::ping,
             commands::bare_invalidate,
             commands::bare_init,
             commands::bare_start_file,

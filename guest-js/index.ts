@@ -1,7 +1,7 @@
 import b4a from "b4a"
 import EventEmitter from "bare-events"
 import { Duplex, Callback } from "streamx"
-import NativeBareKit, { nativePing } from "./module"
+import NativeBareKit from "./module"
 
 enum CONSTANTS {
   STARTED = 0x1,
@@ -304,7 +304,3 @@ class BareKitWorklet extends EventEmitter {
 
 export const Worklet = BareKitWorklet
 export type Worklet = BareKitWorklet
-
-export async function ping(value: string): Promise<string | null> {
-  return nativePing(value)
-}
