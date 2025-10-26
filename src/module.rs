@@ -5,9 +5,14 @@ use std::{
     os::raw::{c_char, c_void},
     ptr::null_mut,
     slice,
+    sync::Arc,
 };
 
+#[cfg(not(target_os = "android"))]
+use tauri::{async_runtime::block_on, Listener, Manager};
 use tauri::{Runtime, WebviewWindow};
+#[cfg(not(target_os = "android"))]
+use tokio::sync::Notify;
 
 use crate::bindings::*;
 use crate::error::Result;
@@ -17,7 +22,12 @@ pub struct Looper(*mut ALooper);
 #[cfg(not(target_os = "android"))]
 pub struct Looper();
 
+unsafe impl Send for Looper {}
+
+unsafe impl Sync for Looper {}
+
 struct PollData<R: Runtime> {
+    worklet_id: u8,
     window: WebviewWindow<R>,
     callback_id: u32,
 }
@@ -42,6 +52,7 @@ unsafe impl<R: Runtime> Sync for BareWorklet<R> {}
 
 impl<R: Runtime> BareWorklet<R> {
     pub fn new(
+        worklet_id: u8,
         memory_limit: usize,
         assets: Option<String>,
         window: WebviewWindow<R>,
@@ -60,6 +71,7 @@ impl<R: Runtime> BareWorklet<R> {
         assert!(err == 0);
 
         let data = PollData {
+            worklet_id,
             window,
             callback_id,
         };
@@ -137,7 +149,7 @@ impl<R: Runtime> BareWorklet<R> {
 
         #[cfg(target_os = "android")]
         unsafe {
-            /** BareKit is expecting Looper for main thread,
+            /* BareKit is expecting Looper for main thread,
              * but since tauri plugins run in their own threads
              * this fails. Replace acquired Looper with prepared Looper
              * from main thread.
@@ -301,6 +313,36 @@ unsafe extern "C" fn on_free(_: *mut bare_worklet_t, source: *const uv_buf_t, _:
     drop(CString::from_raw(buffer.base));
 }
 
+#[cfg(not(target_os = "android"))]
+unsafe extern "C" fn on_poll<R: Runtime>(poll: *mut bare_ipc_poll_t, events: i32) {
+    let data = unsafe { &mut *(bare_ipc_poll_get_data(poll) as *mut PollData<R>) };
+    let readable = (events as u32 & bare_ipc_readable) != 0;
+    let writable = (events as u32 & bare_ipc_writable) != 0;
+
+    let notify = Arc::new(Notify::new());
+    let notifier = notify.clone();
+    let notified = notify.notified();
+
+    let app = data.window.app_handle();
+
+    app.listen(format!("bare-kit:worklet:{}", data.worklet_id), move |e| {
+        app.unlisten(e.id());
+        notifier.notify_waiters();
+    });
+
+    data.window
+        .eval(format!(
+            "window.__TAURI_INTERNALS__.runCallback({}, {{ readable: {}, writable: {} }})",
+            data.callback_id, readable, writable,
+        ))
+        .unwrap();
+
+    block_on(async move {
+        notified.await;
+    });
+}
+
+#[cfg(target_os = "android")]
 unsafe extern "C" fn on_poll<R: Runtime>(poll: *mut bare_ipc_poll_t, events: i32) {
     let data = unsafe { &mut *(bare_ipc_poll_get_data(poll) as *mut PollData<R>) };
     let readable = (events as u32 & bare_ipc_readable) != 0;
@@ -354,7 +396,7 @@ impl<R: Runtime> BareModule<R> {
     ) -> u8 {
         self.id += 1;
 
-        let worklet = BareWorklet::new(memory_limit, assets, window, callback_id);
+        let worklet = BareWorklet::new(self.id, memory_limit, assets, window, callback_id);
         self.worklets.insert(self.id, worklet);
 
         self.id

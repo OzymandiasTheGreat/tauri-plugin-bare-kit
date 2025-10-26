@@ -1,8 +1,7 @@
-import { invoke } from "@tauri-apps/api/core"
 import b4a from "b4a"
 import EventEmitter from "bare-events"
 import { Duplex, Callback } from "streamx"
-import NativeBareKit from "./module"
+import NativeBareKit, { nativePing } from "./module"
 
 enum CONSTANTS {
   STARTED = 0x1,
@@ -58,6 +57,8 @@ class BareKitIPC extends Duplex {
     if (this._worklet.terminated) return
     if (data.readable) await this._continueRead()
     if (data.writable) await this._continueWrite()
+
+    await NativeBareKit.notify(this._worklet.handle)
   }
 
   async _read(callback: Callback) {
@@ -305,9 +306,5 @@ export const Worklet = BareKitWorklet
 export type Worklet = BareKitWorklet
 
 export async function ping(value: string): Promise<string | null> {
-  return await invoke<{ value?: string }>("plugin:bare-kit|ping", {
-    payload: {
-      value,
-    },
-  }).then((r) => (r.value ? r.value : null))
+  return nativePing(value)
 }

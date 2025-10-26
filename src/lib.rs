@@ -1,4 +1,4 @@
-use std::sync::Mutex;
+use std::{env::consts, sync::Mutex};
 
 use tauri::{
     plugin::{Builder, TauriPlugin},
@@ -38,7 +38,10 @@ impl<R: Runtime, T: Manager<R>> crate::BareKitExt<R> for T {
 
 /// Initializes the plugin.
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
+    let init_js: String = format!("Object.defineProperty(window, '__TAURI_BARE_KIT_PLUGIN_INTERNALS__', {{ value: {{ platform: '{}' }} }})", consts::OS);
+
     Builder::new("bare-kit")
+        .js_init_script(init_js)
         .invoke_handler(tauri::generate_handler![
             commands::ping,
             commands::bare_invalidate,

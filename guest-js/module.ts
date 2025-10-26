@@ -1,9 +1,34 @@
 import { invoke, transformCallback } from "@tauri-apps/api/core"
+import { emit } from "@tauri-apps/api/event"
 import b4a from "b4a"
+
+declare global {
+  type Platform = "android" | "ios" | "linux" | "macos" | "windows"
+
+  interface Window {
+    __TAURI_BARE_KIT_PLUGIN_INTERNALS__: {
+      platform: Platform
+    }
+  }
+}
+
+export async function nativePing(value: string): Promise<string | null> {
+  return await invoke<{ value?: string }>("plugin:bare-kit|ping", {
+    payload: {
+      value,
+    },
+  }).then((r) => (r.value ? r.value : null))
+}
 
 type on_poll_callback = ((data: { readable: boolean; writable: boolean }) => void) | null
 
 export default class NativeBareKit {
+  static platform: Platform = window.__TAURI_BARE_KIT_PLUGIN_INTERNALS__.platform
+
+  static async notify(id: number) {
+    if (this.platform !== "android") emit(`bare-kit:worklet:${id}`)
+  }
+
   static async invalidate(): Promise<void> {
     return invoke(format("bare_invalidate"))
   }
@@ -42,16 +67,26 @@ export default class NativeBareKit {
   }
 
   static async read(id: number): Promise<Uint8Array | null> {
-    return invoke<ArrayBuffer>(format("bare_read"), { payload: { id } }).then((res) => {
-      if (res.byteLength === 0) {
-        return null
-      }
-      return b4a.from(res)
-    })
+    let data: any = await invoke<ArrayBuffer | string>(format("bare_read"), { payload: { id } })
+
+    if (this.platform === "android") {
+      data = b4a.from(data, "base64")
+    }
+
+    if (data.byteLength === 0) {
+      return null
+    }
+
+    return b4a.from(data)
   }
 
   static async write(id: number, data: Uint8Array | null): Promise<number> {
-    const payload = data ? b4a.concat([b4a.alloc(1, id), data]) : b4a.allocUnsafe(0)
+    let payload: any = data ? b4a.concat([b4a.alloc(1, id), data]) : b4a.allocUnsafe(0)
+
+    if (this.platform === "android") {
+      payload = { payload: b4a.toString(payload, "base64") }
+    }
+
     return invoke<number>(format("bare_write"), payload)
   }
 

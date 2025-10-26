@@ -1,8 +1,7 @@
-use tauri::{
-    command,
-    ipc::{Request, Response},
-    AppHandle, Runtime, WebviewWindow,
-};
+#[cfg(not(target_os = "android"))]
+use tauri::ipc::{Request, Response};
+
+use tauri::{command, AppHandle, Runtime, WebviewWindow};
 
 use crate::models::*;
 use crate::BareKitExt;
@@ -17,12 +16,12 @@ pub(crate) async fn ping<R: Runtime>(
 }
 
 #[command]
-pub(crate) async fn bare_invalidate<R: Runtime>(app: AppHandle<R>) -> Result<()> {
+pub(crate) fn bare_invalidate<R: Runtime>(app: AppHandle<R>) -> Result<()> {
     app.bare_kit().lock().unwrap().invalidate()
 }
 
 #[command]
-pub(crate) async fn bare_init<R: Runtime>(
+pub(crate) fn bare_init<R: Runtime>(
     app: AppHandle<R>,
     window: WebviewWindow<R>,
     payload: InitRequest,
@@ -31,7 +30,7 @@ pub(crate) async fn bare_init<R: Runtime>(
 }
 
 #[command]
-pub(crate) async fn bare_start_file<R: Runtime>(
+pub(crate) fn bare_start_file<R: Runtime>(
     app: AppHandle<R>,
     payload: StartFileRequest,
 ) -> Result<()> {
@@ -39,7 +38,7 @@ pub(crate) async fn bare_start_file<R: Runtime>(
 }
 
 #[command]
-pub(crate) async fn bare_start_utf8<R: Runtime>(
+pub(crate) fn bare_start_utf8<R: Runtime>(
     app: AppHandle<R>,
     payload: StartUTF8Request,
 ) -> Result<()> {
@@ -47,60 +46,59 @@ pub(crate) async fn bare_start_utf8<R: Runtime>(
 }
 
 #[command]
-pub(crate) async fn bare_start_bytes<R: Runtime>(
+pub(crate) fn bare_start_bytes<R: Runtime>(
     app: AppHandle<R>,
     payload: StartBytesRequest,
 ) -> Result<()> {
     app.bare_kit().lock().unwrap().start_bytes(payload)
 }
 
+#[cfg(not(target_os = "android"))]
 #[command]
-pub(crate) async fn bare_read<R: Runtime>(
-    app: AppHandle<R>,
-    payload: ReadRequest,
-) -> Result<Response> {
+pub(crate) fn bare_read<R: Runtime>(app: AppHandle<R>, payload: ReadRequest) -> Result<Response> {
     app.bare_kit().lock().unwrap().read(payload)
 }
 
+#[cfg(target_os = "android")]
 #[command]
-pub(crate) async fn bare_write<R: Runtime>(app: AppHandle<R>, payload: Request<'_>) -> Result<i32> {
+pub(crate) fn bare_read<R: Runtime>(app: AppHandle<R>, payload: ReadRequest) -> Result<String> {
+    app.bare_kit().lock().unwrap().read(payload)
+}
+
+#[cfg(not(target_os = "android"))]
+#[command]
+pub(crate) fn bare_write<R: Runtime>(app: AppHandle<R>, payload: Request<'_>) -> Result<i32> {
+    app.bare_kit().lock().unwrap().write(payload)
+}
+
+#[cfg(target_os = "android")]
+#[command]
+pub(crate) fn bare_write<R: Runtime>(app: AppHandle<R>, payload: String) -> Result<i32> {
     app.bare_kit().lock().unwrap().write(payload)
 }
 
 #[command]
-pub(crate) async fn bare_update<R: Runtime>(
-    app: AppHandle<R>,
-    payload: UpdateRequest,
-) -> Result<()> {
+pub(crate) fn bare_update<R: Runtime>(app: AppHandle<R>, payload: UpdateRequest) -> Result<()> {
     app.bare_kit().lock().unwrap().update(payload)
 }
 
 #[command]
-pub(crate) async fn bare_suspend<R: Runtime>(
-    app: AppHandle<R>,
-    payload: SuspendRequest,
-) -> Result<()> {
+pub(crate) fn bare_suspend<R: Runtime>(app: AppHandle<R>, payload: SuspendRequest) -> Result<()> {
     app.bare_kit().lock().unwrap().suspend(payload)
 }
 
 #[command]
-pub(crate) async fn bare_resume<R: Runtime>(
-    app: AppHandle<R>,
-    payload: ResumeRequest,
-) -> Result<()> {
+pub(crate) fn bare_resume<R: Runtime>(app: AppHandle<R>, payload: ResumeRequest) -> Result<()> {
     app.bare_kit().lock().unwrap().resume(payload)
 }
 
 #[command]
-pub(crate) async fn bare_wakeup<R: Runtime>(
-    app: AppHandle<R>,
-    payload: WakeupRequest,
-) -> Result<()> {
+pub(crate) fn bare_wakeup<R: Runtime>(app: AppHandle<R>, payload: WakeupRequest) -> Result<()> {
     app.bare_kit().lock().unwrap().wakeup(payload)
 }
 
 #[command]
-pub(crate) async fn bare_terminate<R: Runtime>(
+pub(crate) fn bare_terminate<R: Runtime>(
     app: AppHandle<R>,
     payload: TerminateRequest,
 ) -> Result<()> {
