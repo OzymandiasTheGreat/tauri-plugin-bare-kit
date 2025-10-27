@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./api"
+  },
+  "include": ["./api-src/**/*.ts"]
+}

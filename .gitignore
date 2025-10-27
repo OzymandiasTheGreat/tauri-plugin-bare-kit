@@ -13,8 +13,8 @@ yarn.lock
 Cargo.lock
 node_modules/
 
-dist-js
-dist
+api/
+bin/
 build/
 prebuilds/
 !src/build/
