@@ -10,8 +10,10 @@ pub fn autolink() {
     let bin_dir = PathBuf::from(env::var("DEP_TAURI_PLUGIN_BARE_KIT_INSTALL_DIR").unwrap());
     let lib_dir = link_addons(&cargo_dir);
 
-    if platform == "ios" || platform == "macos" {
-        println!("cargo::rustc-link-arg=-Wl,-rpath,@executable_path/Frameworks");
+    match &*platform {
+        "ios" | "macos" => println!("cargo::rustc-link-arg=-Wl,-rpath,@executable_path/Frameworks"),
+        "linux" => println!("cargo::rustc-link-arg=-Wl,-rpath=$ORIGIN/lib"),
+        _ => (),
     }
 
     copy_dir_all(&bin_dir, &lib_dir);
@@ -47,7 +49,6 @@ pub fn autolink() {
     }
 
     if platform == "linux" || platform == "macos" || platform == "windows" {
-        let cargo_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
         let resources = lib_dir.strip_prefix(cargo_dir).unwrap();
         let dest = if platform == "macos" {
             "Frameworks"
@@ -84,6 +85,7 @@ fn link_addons<P: AsRef<Path>>(cargo_dir: &P) -> PathBuf {
             .join(android_abi),
         "ios" => cargo_dir.join("gen/apple/Frameworks"),
         "macos" => out_dir.join("Frameworks"),
+        "linux" => out_dir.join("lib"),
         _ => todo!("More platforms"),
     };
     let platform = match &*rust_platform {
@@ -144,6 +146,13 @@ fn link_addons<P: AsRef<Path>>(cargo_dir: &P) -> PathBuf {
                     };
 
                     copy_dir_all(&filepath, &dest_dir);
+                }
+            }
+            "linux" => {
+                let bin_dir = tmp_dir.join(arch);
+
+                for addon in fs::read_dir(&bin_dir).unwrap().filter_map(|a| a.ok()) {
+                    fs::copy(addon.path(), dest_dir.join(addon.file_name())).unwrap();
                 }
             }
             _ => todo!("More platforms"),

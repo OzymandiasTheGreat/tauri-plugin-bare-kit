@@ -55,7 +55,7 @@
     "build": "tsc -p tsconfig.api.json && tsc -p tsconfig.bin.json"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/api": "^2.9.0",
     "b4a": "^1.7.3",
     "bare-events": "^2.8.0",
     "bare-link": "^1.4.6",

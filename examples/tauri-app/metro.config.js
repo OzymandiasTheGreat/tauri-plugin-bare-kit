@@ -13,5 +13,6 @@ config.resolver.nodeModulesPaths = [
   path.resolve(__dirname, "node_modules"),
   path.resolve(monorepoRoot, "node_modules"),
 ]
+config.resolver.blockList = [/[\/\\]target[\/\\]/].concat(config.resolver.blockList)
 
 module.exports = config

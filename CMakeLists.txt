@@ -4,7 +4,11 @@ find_package(cmake-fetch REQUIRED PATHS node_modules/cmake-fetch)
 
 project(tauri_plugin_bare_kit LANGUAGES C CXX VERSION 0.0.1)
 
-fetch_package("github:holepunchto/bare-kit@v1.11.1")
+if(LINUX)
+  fetch_package("github:OzymandiasTheGreat/bare-kit#linux")
+else()
+  fetch_package("github:holepunchto/bare-kit@v1.12.1")
+endif()
 
 install(
   DIRECTORY

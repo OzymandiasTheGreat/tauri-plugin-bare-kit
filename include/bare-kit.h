@@ -23,6 +23,10 @@ extern "C"
 #include "android/suspension.h"
 #endif
 
+#ifdef __linux__
+#include "linux/suspension.h"
+#endif
+
   int bare_suspension_init(bare_suspension_t *suspension);
 
   int bare_suspension_start(bare_suspension_t *suspension, int linger);
@@ -174,6 +178,10 @@ extern "C"
 
 #ifdef __APPLE__
 #include "apple/ipc.h"
+#endif
+
+#ifdef __linux__
+#include "linux/ipc.h"
 #endif
 
   int bare_ipc_alloc(bare_ipc_t **result);

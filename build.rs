@@ -202,11 +202,12 @@ fn generate_bindings<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<()> 
             let output = String::from_utf8(output.stdout)?;
             output.trim().to_owned()
         }
+        "linux" => "".to_string(),
         _ => return Err("Unexpected target".into()),
     };
     let args = match &*target {
         "android" => vec![
-            "--sysroot".to_owned(),
+            "--sysroot".to_string(),
             sysroot,
             format!(
                 "-I{}",
@@ -214,20 +215,52 @@ fn generate_bindings<P: AsRef<Path>>(source_dir: &P, out_dir: &P) -> Result<()> 
             ),
         ],
         "ios" | "macos" => vec![
-            "-isysroot".to_owned(),
+            "-isysroot".to_string(),
             sysroot,
             format!(
                 "-I{}",
                 out.join(format!("{INSTALL_DIR}/include/include")).display()
             ),
         ],
+        "linux" => vec![format!(
+            "-I{}",
+            out.join(format!("{INSTALL_DIR}/include/include")).display()
+        )],
         _ => return Err("Unexpected target".into()),
     };
 
     let bindings = bindgen::Builder::default()
         .header(header.to_str().unwrap())
-        .clang_args(args)
-        .blocklist_file(".*stdlib\\.h");
+        .clang_args(args);
+    let bindings = match &*target {
+        "android" => bindings
+            .allowlist_file(".*android/ipc\\.h")
+            .allowlist_file(".*android/suspension\\.h"),
+        "ios" | "macos" => bindings
+            .allowlist_file(".*apple/ipc\\.h")
+            .allowlist_file(".*apple/suspension\\.h"),
+        "linux" => bindings
+            .allowlist_file(".*linux/ipc\\.h")
+            .allowlist_file(".*linux/suspension\\.h"),
+        _ => bindings,
+    };
+    let bindings = bindings
+        .allowlist_file(".*bare-kit\\.h")
+        .allowlist_file(".*bare\\.h")
+        .allowlist_file(".*js\\.h")
+        .allowlist_file(".*uv\\.h")
+        .allowlist_file(".*stdbool\\.h")
+        .allowlist_file(".*stddef\\.h");
+    let bindings = match &*target {
+        "android" => bindings.allowlist_file(".*android/looper\\.h"),
+        "ios" | "macos" => bindings
+            .allowlist_file(".*dispatch/dispatch\\.h")
+            .allowlist_file(".*stdatomic\\.h"),
+        "linux" => bindings
+            .allowlist_file(".*pthread\\.h")
+            .allowlist_file(".*sys/epoll\\.h"),
+        _ => bindings,
+    };
     let bindings = bindings
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()?;
