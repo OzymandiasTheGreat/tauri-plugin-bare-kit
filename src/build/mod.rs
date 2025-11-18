@@ -149,7 +149,7 @@ fn link_addons<P: AsRef<Path>>(cargo_dir: &P) -> PathBuf {
                 }
             }
             "linux" => {
-                let bin_dir = tmp_dir.join(arch);
+                let bin_dir = tmp_dir.join("lib");
 
                 for addon in fs::read_dir(&bin_dir).unwrap().filter_map(|a| a.ok()) {
                     fs::copy(addon.path(), dest_dir.join(addon.file_name())).unwrap();
