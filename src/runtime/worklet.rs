@@ -1,12 +1,6 @@
 #[cfg(not(target_os = "android"))]
 use std::sync::Arc;
-use std::{
-    ffi::CString,
-    marker::PhantomData,
-    os::raw::{c_char, c_void},
-    ptr::null_mut,
-    slice,
-};
+use std::{ffi::CString, marker::PhantomData, os::raw::c_char, ptr::null_mut, slice};
 
 #[cfg(not(target_os = "android"))]
 use tauri::{async_runtime::block_on, Listener, Manager};
@@ -113,16 +107,17 @@ impl<R: Runtime> BareWorklet<R> {
 
         self.started = true;
 
-        let mut argv: Vec<*const c_char> =
-            args.iter().map(|a| a.as_ptr() as *const c_char).collect();
+        let argv: Vec<CString> = args
+            .iter()
+            .map(|arg| CString::new(arg.clone()).unwrap())
+            .collect();
+        let mut argv: Vec<*const c_char> = argv.iter().map(|arg| arg.as_ptr()).collect();
         let err = match source {
             Some(source) => unsafe {
                 bare_worklet_start(
                     self.worklet,
-                    filename.as_ptr() as *const c_char,
+                    CString::new(filename).unwrap().as_ptr(),
                     &source,
-                    Some(on_free),
-                    null_mut(),
                     argv.len() as i32,
                     argv.as_mut_ptr(),
                 )
@@ -130,9 +125,7 @@ impl<R: Runtime> BareWorklet<R> {
             None => unsafe {
                 bare_worklet_start(
                     self.worklet,
-                    filename.as_ptr() as *const c_char,
-                    null_mut(),
-                    None,
+                    CString::new(filename).unwrap().as_ptr(),
                     null_mut(),
                     argv.len() as i32,
                     argv.as_mut_ptr(),
@@ -173,13 +166,8 @@ impl<R: Runtime> BareWorklet<R> {
         _looper: &Looper,
     ) {
         let source = CString::new(source).unwrap();
-        let len = source.count_bytes();
-        let source = uv_buf_t {
-            base: source.into_raw(),
-            len,
-        };
-
-        self._start(filename, Some(source), args, _looper);
+        let buffer = unsafe { uv_buf_init(source.as_ptr() as *mut _, source.count_bytes() as u32) };
+        self._start(filename, Some(buffer), args, _looper);
     }
 
     pub fn start_bytes(
@@ -189,14 +177,8 @@ impl<R: Runtime> BareWorklet<R> {
         args: Vec<String>,
         _looper: &Looper,
     ) {
-        let source = CString::new(source).unwrap();
-        let len = source.count_bytes();
-        let source = uv_buf_t {
-            base: source.into_raw(),
-            len,
-        };
-
-        self._start(filename, Some(source), args, _looper);
+        let buffer = unsafe { uv_buf_init(source.as_ptr() as *mut _, source.len() as u32) };
+        self._start(filename, Some(buffer), args, _looper);
     }
 
     pub fn read(&mut self) -> Vec<u8> {
@@ -293,8 +275,8 @@ impl<R: Runtime> BareWorklet<R> {
             assert!(err == 0);
 
             unsafe {
-                let poll = *self.poll;
-                let data = Box::from_raw(poll.data as *mut PollData<R>);
+                let data = bare_ipc_poll_get_data(self.poll);
+                let data = Box::from_raw(data as *mut PollData<R>);
                 bare_ipc_poll_destroy(self.poll);
                 drop(data);
                 bare_ipc_destroy(self.ipc);
@@ -309,16 +291,11 @@ impl<R: Runtime> BareWorklet<R> {
     }
 }
 
-unsafe extern "C" fn on_free(_: *mut bare_worklet_t, source: *const uv_buf_t, _: *mut c_void) {
-    let buffer = *source;
-    drop(CString::from_raw(buffer.base));
-}
-
 #[cfg(not(target_os = "android"))]
 unsafe extern "C" fn on_poll<R: Runtime>(poll: *mut bare_ipc_poll_t, events: i32) {
     let data = unsafe { &mut *(bare_ipc_poll_get_data(poll) as *mut PollData<R>) };
-    let readable = (events as u32 & bare_ipc_readable) != 0;
-    let writable = (events as u32 & bare_ipc_writable) != 0;
+    let readable = (events & bare_ipc_readable) != 0;
+    let writable = (events & bare_ipc_writable) != 0;
 
     let notify = Arc::new(Notify::new());
     let notifier = notify.clone();

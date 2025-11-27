@@ -9,20 +9,21 @@ exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules"]
 links = "tauri-plugin-bare-kit"
 
 [dependencies]
-tauri = { version = "2.8.5" }
+tauri = { version = "2.9.3" }
 serde = "1.0"
 thiserror = "2"
 tokio = "1.48.0"
+pathdiff = { version = "0.2.3", optional = true }
+regex = { version = "1.12.2", features = ["std"], optional = true }
 
 [target.'cfg(target_os = "android")'.dependencies]
 base64 = "0.22.1"
 
 [build-dependencies]
 bindgen = "0.72.1"
-tauri-plugin = { version = "2.4.0", features = ["build"] }
-thiserror = "2"
+tauri-plugin = { version = "2.5.1", features = ["build"] }
 
 [features]
 default = ["runtime"]
-build = []
+build = ["dep:pathdiff", "dep:regex"]
 runtime = []
