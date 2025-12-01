@@ -104,25 +104,34 @@ fn build_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
             args.push("--debug");
         }
 
-        assert!(Command::new(RUNNER).args(args).status().unwrap().success());
-        assert!(Command::new(RUNNER)
-            .args(["--yes", MAKE, "build", "--build", build.to_str().unwrap()])
-            .status()
-            .unwrap()
-            .success());
-        assert!(Command::new(RUNNER)
-            .args([
-                "--yes",
-                MAKE,
-                "install",
-                "--build",
-                build.to_str().unwrap(),
-                "--prefix",
-                scratch.to_str().unwrap(),
-            ])
-            .status()
-            .unwrap()
-            .success());
+        assert!(
+            Command::new(RUNNER).args(args).status().unwrap().success(),
+            "Configure failed"
+        );
+        assert!(
+            Command::new(RUNNER)
+                .args(["--yes", MAKE, "build", "--build", build.to_str().unwrap()])
+                .status()
+                .unwrap()
+                .success(),
+            "Build failed"
+        );
+        assert!(
+            Command::new(RUNNER)
+                .args([
+                    "--yes",
+                    MAKE,
+                    "install",
+                    "--build",
+                    build.to_str().unwrap(),
+                    "--prefix",
+                    scratch.to_str().unwrap(),
+                ])
+                .status()
+                .unwrap()
+                .success(),
+            "Install failed"
+        );
     }
 
     fs::create_dir_all(&framework_bin).unwrap();
@@ -203,7 +212,114 @@ fn build_for_linux<P: AsRef<Path>>(src: &P) -> PathBuf {
 #[cfg(feature = "runtime")]
 fn build_for_windows<P: AsRef<Path>>(src: &P) -> PathBuf {
     let src = src.as_ref();
-    todo!("Support windows...eh");
+    let profile = env::var("PROFILE").unwrap();
+    let temp = env::temp_dir().join(PLUGIN).join(profile);
+    let arch = match &*env::var("CARGO_CFG_TARGET_ARCH").unwrap() {
+        "aarch64" => "arm64",
+        "x86_64" => "x64",
+        arch => panic!("Unsupported target architecture: {arch}"),
+    };
+    let target = format!("win32-{arch}");
+    let build = temp.join("build").join(&target);
+    let scratch = temp.join("scratch").join(&target);
+    let bin = temp.join("bin").join(&target);
+    let lib = temp.join("lib").join(&target);
+
+    if bin.join("bare-kit.dll").exists() && lib.join("bare-kit.lib").exists() {
+        return bin;
+    }
+
+    let mut args = vec![
+        "--yes",
+        MAKE,
+        "generate",
+        "--source",
+        src.to_str().unwrap(),
+        "--build",
+        build.to_str().unwrap(),
+        "--platform",
+        "win32",
+        "--arch",
+        arch,
+    ];
+
+    if env::var("DEBUG").unwrap() == "true" {
+        args.push("--debug");
+    }
+
+    assert!(
+        Command::new(RUNNER).args(args).status().unwrap().success(),
+        "Configure failed"
+    );
+    assert!(
+        Command::new(RUNNER)
+            .args(["--yes", MAKE, "build", "--build", build.to_str().unwrap()])
+            .status()
+            .unwrap()
+            .success(),
+        "Build failed"
+    );
+    assert!(
+        Command::new(RUNNER)
+            .args([
+                "--yes",
+                MAKE,
+                "install",
+                "--build",
+                build.to_str().unwrap(),
+                "--prefix",
+                scratch.to_str().unwrap()
+            ])
+            .status()
+            .unwrap()
+            .success(),
+        "Install failed"
+    );
+
+    fs::create_dir_all(&bin.parent().unwrap()).unwrap();
+    #[cfg(windows)]
+    os::windows::fs::symlink_dir(&scratch.join("bin"), &bin)
+        .or_else(|err| {
+            if err.kind() == std::io::ErrorKind::AlreadyExists {
+                Ok(())
+            } else {
+                Err(err)
+            }
+        })
+        .unwrap();
+    #[cfg(unix)]
+    os::unix::fs::symlink(&scratch.join("bin"), &bin)
+        .or_else(|err| {
+            if err.kind() == std::io::ErrorKind::AlreadyExists {
+                Ok(())
+            } else {
+                Err(err)
+            }
+        })
+        .unwrap();
+    fs::create_dir_all(&lib.parent().unwrap()).unwrap();
+    #[cfg(windows)]
+    os::windows::fs::symlink_dir(&scratch.join("lib"), &lib)
+        .or_else(|err| {
+            if err.kind() == std::io::ErrorKind::AlreadyExists {
+                Ok(())
+            } else {
+                Err(err)
+            }
+        })
+        .unwrap();
+    #[cfg(unix)]
+    os::unix::fs::symlink(&scratch.join("lib"), &lib)
+        .or_else(|err| {
+            if err.kind() == std::io::ErrorKind::AlreadyExists {
+                Ok(())
+            } else {
+                Err(err)
+            }
+        })
+        .unwrap();
+
+    bin
 }
 
 #[cfg(feature = "runtime")]
