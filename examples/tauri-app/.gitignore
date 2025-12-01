@@ -40,4 +40,4 @@ yarn-error.*
 /ios
 /android
 
-app.bundle.json
+bare/index.bundle.json

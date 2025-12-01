@@ -4,7 +4,7 @@ import { StatusBar } from "expo-status-bar"
 import b4a from "b4a"
 import RPC from "bare-rpc"
 import { Worklet } from "tauri-plugin-bare-kit-api"
-import bundleSource from "./bare/app.bundle.json"
+import bundleSource from "./bare/index.bundle.json"
 
 const METHOD = {
   ENCRYPT: 0,

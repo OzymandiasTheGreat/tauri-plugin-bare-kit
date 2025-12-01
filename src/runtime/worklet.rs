@@ -294,8 +294,8 @@ impl<R: Runtime> BareWorklet<R> {
 #[cfg(not(target_os = "android"))]
 unsafe extern "C" fn on_poll<R: Runtime>(poll: *mut bare_ipc_poll_t, events: i32) {
     let data = unsafe { &mut *(bare_ipc_poll_get_data(poll) as *mut PollData<R>) };
-    let readable = (events & bare_ipc_readable) != 0;
-    let writable = (events & bare_ipc_writable) != 0;
+    let readable = (events & bare_ipc_readable as i32) != 0;
+    let writable = (events & bare_ipc_writable as i32) != 0;
 
     let notify = Arc::new(Notify::new());
     let notifier = notify.clone();

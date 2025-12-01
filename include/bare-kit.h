@@ -24,23 +24,8 @@ uv_buf_init(char *base, unsigned int len);
 
 #define BARE_IPC_READ_BUFFER_SIZE 64 * 1024
 
-typedef struct bare_suspension_s bare_suspension_t;
-
-int
-bare_suspension_init(bare_suspension_t *suspension);
-
-int
-bare_suspension_start(bare_suspension_t *suspension, int timeout);
-
-int
-bare_suspension_end(bare_suspension_t *suspension);
-
 typedef struct bare_worklet_s bare_worklet_t;
 typedef struct bare_worklet_options_s bare_worklet_options_t;
-typedef struct bare_worklet_push_s bare_worklet_push_t;
-
-typedef void (*bare_worklet_finalize_cb)(bare_worklet_t *, const uv_buf_t *source, void *finalize_hint);
-typedef void (*bare_worklet_push_cb)(bare_worklet_push_t *, const char *error, const uv_buf_t *reply);
 
 struct bare_worklet_options_s {
   /**
@@ -96,15 +81,6 @@ bare_worklet_wakeup(bare_worklet_t *worklet, int deadline);
 
 int
 bare_worklet_terminate(bare_worklet_t *worklet);
-
-int
-bare_worklet_push(bare_worklet_t *worklet, bare_worklet_push_t *req, const uv_buf_t *payload, bare_worklet_push_cb cb);
-
-void *
-bare_worklet_push_get_data(bare_worklet_push_t *req);
-
-void
-bare_worklet_push_set_data(bare_worklet_push_t *req, void *data);
 
 typedef struct bare_ipc_s bare_ipc_t;
 typedef struct bare_ipc_poll_s bare_ipc_poll_t;
