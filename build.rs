@@ -174,18 +174,45 @@ fn build_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
         .unwrap()
         .success());
 
+    #[cfg(unix)]
     os::unix::fs::symlink(
         &framework_head.strip_prefix(&framework).unwrap(),
         &framework.join("Headers"),
     )
     .unwrap();
+    #[cfg(windows)]
+    os::windows::fs::symlink_dir(
+        &framework_head.strip_prefix(&framework).unwrap(),
+        &framework.join("Headers"),
+    )
+    .unwrap();
+    #[cfg(unix)]
     os::unix::fs::symlink(
         &framework_res.strip_prefix(&framework).unwrap(),
         &framework.join("Resources"),
     )
     .unwrap();
+    #[cfg(windows)]
+    os::windows::fs::symlink_dir(
+        &framework_res.strip_prefix(&framework).unwrap(),
+        &framework.join("Resources"),
+    )
+    .unwrap();
+    #[cfg(unix)]
     os::unix::fs::symlink("A", &framework_bin.join("../Current")).unwrap();
+    #[cfg(windows)]
+    os::windows::fs::symlink_dir("A", &framework_bin.join("../Current")).unwrap();
+    #[cfg(unix)]
     os::unix::fs::symlink(
+        &framework_bin
+            .join("BareKit")
+            .strip_prefix(&framework)
+            .unwrap(),
+        &framework.join("BareKit"),
+    )
+    .unwrap();
+    #[cfg(windows)]
+    os::windows::fs::symlink_file(
         &framework_bin
             .join("BareKit")
             .strip_prefix(&framework)

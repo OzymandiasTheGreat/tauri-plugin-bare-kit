@@ -30,21 +30,32 @@ pub fn autolink() {
     };
 
     if platform == "darwin" || platform == "linux" || platform == "win32" {
-        let relative = pathdiff::diff_paths(&out, &src).unwrap();
+        #[cfg(unix)]
+        let relative = pathdiff::diff_paths(&out, &src)
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
+        #[cfg(windows)]
+        let relative = pathdiff::diff_paths(&out, &src)
+            .unwrap()
+            .to_string_lossy()
+            .escape_default()
+            .to_string();
         let dest = match platform {
             "darwin" => "Frameworks",
             "linux" => "lib",
             _ => "",
         };
 
-        env::set_var(
-            "TAURI_CONFIG",
-            format!(
-                "{{ \"bundle\": {{ \"resources\": {{ \"{}\": \"{}\" }} }} }}",
-                relative.display(),
-                dest,
-            ),
-        );
+        unsafe {
+            env::set_var(
+                "TAURI_CONFIG",
+                format!(
+                    "{{ \"bundle\": {{ \"resources\": {{ \"{}\": \"{}\" }} }} }}",
+                    relative, dest,
+                ),
+            )
+        };
     }
 }
 
