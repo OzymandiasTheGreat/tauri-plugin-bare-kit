@@ -8,13 +8,22 @@ declare module "bare-link" {
     | "linux"
     | "mobile"
     | "win32"
-  export default async function link(
+  export default async function* link(
     base: string,
     options: {
-      target?: string
+      target?: string[]
+      out: string
       preset?: Preset
-      needs?: string[]
-      out?: string
+      sign?: boolean
+
+      // Apple signing options
+      identity?: string
+      keychain?: string
+
+      // Windows signing options
+      subject?: string
+      subjectName?: string
+      thumbprint?: string
     },
-  ): Promise<void>
+  ): AsyncGenerator<void>
 }

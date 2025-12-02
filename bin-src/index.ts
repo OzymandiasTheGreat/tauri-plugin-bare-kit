@@ -1,101 +1,89 @@
 #!/usr/bin/env node
-import fs from "fs/promises"
-import link from "bare-link"
-import { spawn } from "child_process"
-import os from "os"
-import path from "path"
-import { parse, stringify } from "yaml"
+// @ts-ignore
+import { command, flag, header } from "paparam"
+import BareKitCleaner from "./clean.js"
+import BareKitLinker, { Arch } from "./link.js"
 
-interface Dependency {
-  framework?: string
-  sdk?: string
+type Platform = keyof typeof BareKitLinker
+
+const FAT: Platform[] = ["android", "ios", "darwin"] as const
+const THIN: Platform[] = ["linux", "win32"] as const
+const PLATFORMS: Platform[] = [...FAT, ...THIN] as const
+const ARCHS: Partial<Record<Platform, Arch[]>> = {
+  android: ["arm", "arm64", "ia32", "x64"],
+  ios: ["arm64", "x64"],
+  darwin: ["arm64", "x64"],
+  linux: ["arm64", "x64"],
+  win32: ["arm64", "x64"],
 }
 
-const BareKit = "BareKit.framework"
-const Template = "src-tauri/gen/apple/project.yml"
-const SearchPath = "$(PROJECT_DIR)/Frameworks"
-const ARM64_PATH_KEY = "LIBRARY_SEARCH_PATHS[arch=arm64]"
-const X64_PATH_KEY = "LIBRARY_SEARCH_PATHS[arch=x86_64]"
+const clean = command("clean", header("Build artifact cleaner for tauri-plugin-bare-kit"))
+const link = command(
+  "link",
+  header("Manual binary linker for tauri-plugin-bare-kit"),
+  flag(
+    "--platform|-p <platform>",
+    "The platform to link. Only ios requires manual linking, as other platforms are linked automatically during build. Valid values are android, ios, darwin, linux, win32.",
+  ),
+  flag(
+    "--arch|-a <arch>",
+    "The architecture to link. Only linux and windows require arch to be specified as other platforms link all supported archs.",
+  ),
+  flag("--profile|-d <profile>", "The profile to use for linking. Defaults to debug"),
+)
+const cmd = command(
+  "bare-kit",
+  header("Utility commands for tauri-plugin-bare-kit"),
+  clean,
+  link,
+)
 
-let addon_tmp = null
-try {
-  const project_root = await find_root()
-  const template_path = path.join(project_root, Template)
+const {
+  flags,
+  name,
+}: { flags: { platform?: Platform; arch?: Arch; profile?: string }; name: "clean" | "link" } =
+  cmd.parse()
 
-  if (!(await exists(template_path))) {
-    throw new Error("iOS project not initialized.\nRun `npx tauri ios init` first")
+if (name === "clean") {
+  await BareKitCleaner.clean()
+} else if (name === "link") {
+  if (!flags.platform) {
+    if (!flags.arch && !flags.profile) {
+      console.log(`🟢 No platform specified`)
+      console.log(cmd.help())
+      process.exit(0)
+    }
+
+    console.error(`🛑 "--platform" is required`)
+    process.exit(1)
   }
 
-  const template = parse(await fs.readFile(template_path, "utf8"))
-  const target = `${template.name}_iOS`
-  const settings = template.targets[target].settings.base
-  const dependencies: Dependency[] = template.targets[target].dependencies
-
-  if (!settings[ARM64_PATH_KEY].includes(SearchPath)) {
-    settings[ARM64_PATH_KEY] = `${settings[ARM64_PATH_KEY]} ${SearchPath}`
+  if (!PLATFORMS.includes(flags.platform)) {
+    console.error(`🛑 "--platform" must be one of ${PLATFORMS.join(", ")}`)
+    process.exit(1)
   }
 
-  if (!settings[X64_PATH_KEY].includes(SearchPath)) {
-    settings[X64_PATH_KEY] = `${settings[X64_PATH_KEY]} ${SearchPath}`
-  }
+  if (flags.arch) {
+    if (FAT.includes(flags.platform)) {
+      console.log(`🟢 ${flags.platform} always builds all supported architectures`)
+    }
 
-  addon_tmp = await fs.mkdtemp(path.join(os.tmpdir(), "bare-kit-"))
-  await link(project_root, { preset: "ios", needs: [BareKit], out: addon_tmp })
-
-  const frameworks = await fs
-    .readdir(addon_tmp)
-    .then((fr) => [
-      BareKit,
-      ...fr.map((fn) => `${path.basename(fn, ".xcframework")}.framework`),
-    ])
-  const framework_names = frameworks.map((f) => {
-    const index = f.indexOf(".")
-    return f.slice(0, index)
-  })
-  const filtered_dependencies = dependencies.filter(
-    (d) => !framework_names.some((f) => d.framework?.includes(f)),
-  )
-
-  for (const framework of frameworks) {
-    filtered_dependencies.push({ framework: path.join(SearchPath, framework) })
-  }
-
-  template.targets[target].dependencies = filtered_dependencies
-
-  await fs.writeFile(template_path, stringify(template))
-
-  const xcodegen = spawn("xcodegen", ["generate", "--spec", template_path])
-  await new Promise((resolve, reject) => {
-    xcodegen.on("error", reject)
-    xcodegen.on("close", resolve)
-  })
-
-  console.log("🚀 iOS project successfully linked")
-} finally {
-  if (addon_tmp) {
-    await fs.rm(addon_tmp, { recursive: true, force: true })
-  }
-}
-
-async function find_root(): Promise<string> {
-  let cwd = process.cwd()
-
-  if (await exists(path.join(cwd, "package.json"))) {
-    return cwd
-  }
-
-  while ((cwd = path.dirname(cwd))) {
-    if (await exists(path.join(cwd, "package.json"))) {
-      return cwd
+    if (!ARCHS[flags.platform]?.includes(flags.arch)) {
+      console.error(
+        `🛑 Supported architectures for ${flags.platform} are ${ARCHS[flags.platform]?.join(
+          ", ",
+        )}`,
+      )
+      process.exit(1)
     }
   }
 
-  throw new Error("Could not determine root project")
-}
+  if (flags.platform !== "ios") {
+    console.log(`🟢 Nothing to do! ${flags.platform} is linked automatically during build`)
+    process.exit(0)
+  }
 
-async function exists(path: string): Promise<boolean> {
-  return fs
-    .access(path, fs.constants.F_OK)
-    .then(() => true)
-    .catch(() => false)
+  await BareKitLinker[flags.platform](flags.arch!, flags.profile)
+} else {
+  console.log(cmd.help())
 }

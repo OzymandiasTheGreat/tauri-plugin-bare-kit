@@ -8,7 +8,7 @@ use std::{
 #[cfg(feature = "runtime")]
 const MAKE: &str = "bare-make@1.6.3";
 #[cfg(feature = "runtime")]
-const PLUGIN: &str = "tauri_plugin_bare_kit";
+const PLUGIN: &str = "tauri-plugin-bare-kit";
 #[cfg(all(feature = "runtime", unix))]
 const RUNNER: &str = "npx";
 #[cfg(all(feature = "runtime", windows))]
@@ -71,7 +71,7 @@ fn build_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
     let temp = env::temp_dir().join(PLUGIN).join(profile);
     let build = temp.join("build");
     let scratch = temp.join("scratch");
-    let dest = temp.join("Frameworks");
+    let dest = temp.join("Frameworks").join("darwin");
     let archs = vec!["arm64", "x64"];
     let framework = dest.join("BareKit.framework");
     let framework_bin = framework.join("Versions/A");
@@ -180,39 +180,16 @@ fn build_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
         &framework.join("Headers"),
     )
     .unwrap();
-    #[cfg(windows)]
-    os::windows::fs::symlink_dir(
-        &framework_head.strip_prefix(&framework).unwrap(),
-        &framework.join("Headers"),
-    )
-    .unwrap();
     #[cfg(unix)]
     os::unix::fs::symlink(
-        &framework_res.strip_prefix(&framework).unwrap(),
-        &framework.join("Resources"),
-    )
-    .unwrap();
-    #[cfg(windows)]
-    os::windows::fs::symlink_dir(
         &framework_res.strip_prefix(&framework).unwrap(),
         &framework.join("Resources"),
     )
     .unwrap();
     #[cfg(unix)]
     os::unix::fs::symlink("A", &framework_bin.join("../Current")).unwrap();
-    #[cfg(windows)]
-    os::windows::fs::symlink_dir("A", &framework_bin.join("../Current")).unwrap();
     #[cfg(unix)]
     os::unix::fs::symlink(
-        &framework_bin
-            .join("BareKit")
-            .strip_prefix(&framework)
-            .unwrap(),
-        &framework.join("BareKit"),
-    )
-    .unwrap();
-    #[cfg(windows)]
-    os::windows::fs::symlink_file(
         &framework_bin
             .join("BareKit")
             .strip_prefix(&framework)
@@ -226,8 +203,12 @@ fn build_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
 
 #[cfg(feature = "runtime")]
 fn build_for_ios<P: AsRef<Path>>(src: &P) -> PathBuf {
-    let src = src.as_ref();
-    todo!("Support iOS");
+    let _src = src.as_ref();
+    let profile = env::var("PROFILE").unwrap();
+    let temp = env::temp_dir().join(PLUGIN).join(profile);
+    let dest = temp.join("Frameworks").join("ios");
+
+    dest
 }
 
 #[cfg(feature = "runtime")]
@@ -314,29 +295,9 @@ fn build_for_windows<P: AsRef<Path>>(src: &P) -> PathBuf {
             }
         })
         .unwrap();
-    #[cfg(unix)]
-    os::unix::fs::symlink(&scratch.join("bin"), &bin)
-        .or_else(|err| {
-            if err.kind() == std::io::ErrorKind::AlreadyExists {
-                Ok(())
-            } else {
-                Err(err)
-            }
-        })
-        .unwrap();
     fs::create_dir_all(&lib.parent().unwrap()).unwrap();
     #[cfg(windows)]
     os::windows::fs::symlink_dir(&scratch.join("lib"), &lib)
-        .or_else(|err| {
-            if err.kind() == std::io::ErrorKind::AlreadyExists {
-                Ok(())
-            } else {
-                Err(err)
-            }
-        })
-        .unwrap();
-    #[cfg(unix)]
-    os::unix::fs::symlink(&scratch.join("lib"), &lib)
         .or_else(|err| {
             if err.kind() == std::io::ErrorKind::AlreadyExists {
                 Ok(())

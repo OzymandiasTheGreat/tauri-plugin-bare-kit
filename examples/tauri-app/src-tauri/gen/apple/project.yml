@@ -95,15 +95,23 @@ targets:
       - sdk: Security.framework
       - sdk: UIKit.framework
       - sdk: WebKit.framework
-      - framework: $(PROJECT_DIR)/Frameworks/BareKit.framework
-      - framework: $(PROJECT_DIR)/Frameworks/bare-os.3.6.2.framework
-      - framework: $(PROJECT_DIR)/Frameworks/bare-url.2.3.0.framework
-      - framework: $(PROJECT_DIR)/Frameworks/sodium-native.5.0.9.framework
+      - framework: $(PROJECT_DIR)/Frameworks/BareKit.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/BareKit.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-buffer.3.4.2.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-fs.4.5.1.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-hrtime.2.1.1.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-module-lexer.1.4.7.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-os.3.6.2.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-pipe.4.1.0.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-signals.4.2.0.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-subprocess.5.2.1.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-tty.5.0.3.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-url.2.3.2.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/sodium-native.5.0.10.xcframework
     preBuildScripts:
-      - script:
-          source "/opt/homebrew/opt/nvm/nvm.sh" && npm run -- tauri ios xcode-script -v --platform
-          ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?}
-          --framework-search-paths "${FRAMEWORK_SEARCH_PATHS:?}"
+      - script: source "/opt/homebrew/opt/nvm/nvm.sh" && npm run -- tauri ios
+          xcode-script -v --platform ${PLATFORM_DISPLAY_NAME:?} --sdk-root
+          ${SDKROOT:?} --framework-search-paths "${FRAMEWORK_SEARCH_PATHS:?}"
           --header-search-paths "${HEADER_SEARCH_PATHS:?}"
           --gcc-preprocessor-definitions "${GCC_PREPROCESSOR_DEFINITIONS:-}"
           --configuration ${CONFIGURATION:?} ${FORCE_COLOR} ${ARCHS:?}

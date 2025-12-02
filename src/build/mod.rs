@@ -6,7 +6,7 @@ use std::{
 
 const LINK: &str = "bare-link@2.1.10";
 const PACK: &str = "bare-pack@1.5.1";
-const PLUGIN: &str = "tauri_plugin_bare_kit";
+const PLUGIN: &str = "tauri-plugin-bare-kit";
 #[cfg(unix)]
 const RUNNER: &str = "npx";
 #[cfg(windows)]
@@ -69,7 +69,7 @@ fn link_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
     let out = PathBuf::from(env::var("OUT_DIR").unwrap()).join("Frameworks");
     let profile = env::var("PROFILE").unwrap();
     let temp = env::temp_dir().join(PLUGIN).join(profile);
-    let dest = temp.join("Frameworks");
+    let dest = temp.join("Frameworks").join("darwin");
     let node = src.parent().unwrap();
     assert!(
         node.join("package.json").exists(),
@@ -114,16 +114,6 @@ fn link_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
         println!("cargo::rustc-link-lib=framework={framework_name}");
     }
 
-    #[cfg(windows)]
-    os::windows::fs::symlink_dir(&dest, &out)
-        .or_else(|err| {
-            if err.kind() == std::io::ErrorKind::AlreadyExists {
-                Ok(())
-            } else {
-                Err(err)
-            }
-        })
-        .unwrap();
     #[cfg(unix)]
     os::unix::fs::symlink(&dest, &out)
         .or_else(|err| {
@@ -160,7 +150,72 @@ fn link_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
 
 fn link_for_ios<P: AsRef<Path>>(src: &P) -> PathBuf {
     let src = src.as_ref();
-    todo!("Link iOS!");
+    let out = src.join("gen/apple/Frameworks");
+    let node = src.parent().unwrap();
+    assert!(
+        node.join("package.json").exists(),
+        "Could not find package.json in {}",
+        node.display()
+    );
+    let entry = node.join("bare/index.js");
+    let builtins = node.join("bare/builtins.json");
+    let bundle = node.join("bare/index.bundle.json");
+    let arch = match &*env::var("CARGO_CFG_TARGET_ARCH").unwrap() {
+        "aarch64" => "arm64",
+        "x86_64" => "x86_64",
+        arch => panic!("Unsupported target architecture for iOS: {arch}"),
+    };
+    let simulator = if env::var("CARGO_CFG_TARGET_ABI").unwrap() == "sim" {
+        "-simulator"
+    } else {
+        ""
+    };
+
+    for xcframework in fs::read_dir(&out).unwrap().filter_map(|f| {
+        if let Some(f) = f.ok() {
+            if f.file_name().to_string_lossy().ends_with(".xcframework") {
+                return Some(f);
+            }
+        }
+        return None;
+    }) {
+        let filepath = xcframework.path();
+        let framework = &*filepath.file_stem().unwrap().to_string_lossy();
+        let searchpath = filepath.join(format!("ios-{arch}{simulator}"));
+        let searchpath = if searchpath.exists() {
+            searchpath
+        } else {
+            filepath.join(format!("ios-arm64_x86_64{simulator}"))
+        };
+
+        println!(
+            "cargo::rustc-link-search=framework={}",
+            searchpath.display()
+        );
+        println!("cargo::rustc-link-lib=framework={framework}");
+    }
+
+    assert!(
+        Command::new(RUNNER)
+            .args([
+                "--yes",
+                PACK,
+                "--preset",
+                "ios",
+                "--builtins",
+                builtins.to_str().unwrap(),
+                "--linked",
+                "--out",
+                bundle.to_str().unwrap(),
+                entry.to_str().unwrap()
+            ])
+            .status()
+            .unwrap()
+            .success(),
+        "Bundling failed"
+    );
+
+    out
 }
 
 fn link_for_linux<P: AsRef<Path>>(src: &P) -> PathBuf {
@@ -269,16 +324,6 @@ fn link_for_windows<P: AsRef<Path>>(src: &P) -> PathBuf {
 
     #[cfg(windows)]
     os::windows::fs::symlink_dir(&bin, &out)
-        .or_else(|err| {
-            if err.kind() == std::io::ErrorKind::AlreadyExists {
-                Ok(())
-            } else {
-                Err(err)
-            }
-        })
-        .unwrap();
-    #[cfg(unix)]
-    os::unix::fs::symlink(&bin, &out)
         .or_else(|err| {
             if err.kind() == std::io::ErrorKind::AlreadyExists {
                 Ok(())
