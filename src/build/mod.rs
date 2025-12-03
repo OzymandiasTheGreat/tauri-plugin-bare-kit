@@ -61,7 +61,103 @@ pub fn autolink() {
 
 fn link_for_android<P: AsRef<Path>>(src: &P) -> PathBuf {
     let src = src.as_ref();
-    todo!("Link Android!");
+    let out = src.join("gen/android/app/src/main/jniLibs");
+    let profile = env::var("PROFILE").unwrap();
+    let temp = env::temp_dir().join(PLUGIN).join(profile);
+    let dest = temp.join("lib").join("android");
+    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let arch = match &*arch {
+        "arm" => "armeabi-v7a",
+        "aarch64" => "arm64-v8a",
+        arch => arch,
+    };
+    let node = src.parent().unwrap();
+    assert!(
+        node.join("package.json").exists(),
+        "Could not find package.json in {}",
+        node.display()
+    );
+    let entry = node.join("bare/index.js");
+    let builtins = node.join("bare/builtins.json");
+    let bundle = node.join("bare/index.bundle.json");
+
+    assert!(
+        Command::new(RUNNER)
+            .args([
+                "--yes",
+                LINK,
+                "--preset",
+                "android",
+                "--out",
+                dest.to_str().unwrap(),
+            ])
+            .current_dir(&node)
+            .status()
+            .unwrap()
+            .success(),
+        "Linking failed"
+    );
+
+    println!(
+        "cargo::rustc-link-search=native={}",
+        out.join(arch).display()
+    );
+
+    for dir in fs::read_dir(&dest).unwrap().filter_map(|d| {
+        if let Some(d) = d.ok() {
+            if d.path().is_dir() {
+                return Some(d);
+            }
+        }
+        return None;
+    }) {
+        fs::create_dir_all(&out.join(dir.file_name())).unwrap();
+
+        for lib in fs::read_dir(&dir.path()).unwrap().filter_map(|so| {
+            if let Some(so) = so.ok() {
+                if so.file_name().to_string_lossy().ends_with(".so") {
+                    return Some(so);
+                }
+            }
+            return None;
+        }) {
+            fs::copy(
+                &lib.path(),
+                &out.join(dir.file_name()).join(lib.file_name()),
+            )
+            .unwrap();
+
+            if dir.file_name() == arch {
+                let filepath = lib.path();
+                let filename = &*filepath.file_stem().unwrap().to_string_lossy();
+                let libname = filename.strip_prefix("lib").unwrap_or(filename);
+
+                println!("cargo::rustc-link-lib={libname}");
+            }
+        }
+    }
+
+    assert!(
+        Command::new(RUNNER)
+            .args([
+                "--yes",
+                PACK,
+                "--preset",
+                "android",
+                "--builtins",
+                builtins.to_str().unwrap(),
+                "--linked",
+                "--out",
+                bundle.to_str().unwrap(),
+                entry.to_str().unwrap(),
+            ])
+            .status()
+            .unwrap()
+            .success(),
+        "Bundling failed"
+    );
+
+    out
 }
 
 fn link_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {

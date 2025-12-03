@@ -87,6 +87,10 @@ typedef struct bare_ipc_poll_s bare_ipc_poll_t;
 
 typedef void (*bare_ipc_poll_cb)(bare_ipc_poll_t *, int events);
 
+#ifdef __ANDROID__
+#include "android.h"
+#endif
+
 enum {
   bare_ipc_readable = 0x1,
   bare_ipc_writable = 0x2,

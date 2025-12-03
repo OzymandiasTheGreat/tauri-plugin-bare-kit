@@ -61,7 +61,104 @@ fn main() {
 #[cfg(feature = "runtime")]
 fn build_for_android<P: AsRef<Path>>(src: &P) -> PathBuf {
     let src = src.as_ref();
-    todo!("Support Android!");
+    let profile = env::var("PROFILE").unwrap();
+    let temp = env::temp_dir().join(PLUGIN).join(profile);
+    let build = temp.join("build");
+    let scratch = temp.join("scratch");
+    let dest = temp.join("lib").join("android");
+    let archs = vec![
+        ("arm", "armeabi-v7a"),
+        ("arm64", "arm64-v8a"),
+        ("ia32", "x86"),
+        ("x64", "x86_64"),
+    ];
+    let libname = "libbare-kit.so";
+    let libcpp = "libc++_shared.so";
+    let ndk = PathBuf::from(env::var("ANDROID_NDK").unwrap());
+    let host = match env::consts::OS {
+        "macos" => "darwin-x86_64".to_string(),
+        os => format!("{os}-x86_64"),
+    };
+
+    if archs
+        .iter()
+        .all(|(_, abi)| dest.join(abi).join(libname).exists())
+    {
+        return dest;
+    }
+
+    for (arch, abi) in archs {
+        let target = format!("android-{arch}");
+        let build = build.join(&target);
+        let scratch = scratch.join(&target);
+        let dest = dest.join(abi);
+        let triple = match abi {
+            "armeabi-v7a" => "arm-linux-androideabi",
+            "arm64-v8a" => "aarch64-linux-android",
+            "x86" => "i686-linux-android",
+            "x86_64" => "x86_64-linux-android",
+            abi => panic!("Shouldn't happen! Android ABI: {abi}"),
+        };
+        let stl = ndk
+            .join(format!(
+                "toolchains/llvm/prebuilt/{host}/sysroot/usr/lib/{triple}"
+            ))
+            .join(libcpp);
+        let mut args = vec![
+            "--yes",
+            MAKE,
+            "generate",
+            "--source",
+            src.to_str().unwrap(),
+            "--build",
+            build.to_str().unwrap(),
+            "--platform",
+            "android",
+            "--arch",
+            arch,
+            "--define",
+            "ANDROID_STL=c++_shared",
+        ];
+
+        if env::var("DEBUG").unwrap() == "true" {
+            args.push("--debug");
+        }
+
+        assert!(
+            Command::new(RUNNER).args(args).status().unwrap().success(),
+            "Configure failed"
+        );
+        assert!(
+            Command::new(RUNNER)
+                .args(["--yes", MAKE, "build", "--build", build.to_str().unwrap()])
+                .status()
+                .unwrap()
+                .success(),
+            "Build failed"
+        );
+        assert!(
+            Command::new(RUNNER)
+                .args([
+                    "--yes",
+                    MAKE,
+                    "install",
+                    "--build",
+                    build.to_str().unwrap(),
+                    "--prefix",
+                    scratch.to_str().unwrap()
+                ])
+                .status()
+                .unwrap()
+                .success(),
+            "Install failed"
+        );
+
+        fs::create_dir_all(&dest).unwrap();
+        fs::copy(&scratch.join("lib").join(libname), &dest.join(libname)).unwrap();
+        fs::copy(&stl, &dest.join(libcpp)).unwrap();
+    }
+
+    dest
 }
 
 #[cfg(feature = "runtime")]
@@ -319,6 +416,7 @@ fn generate_bindings<S: AsRef<Path>, O: AsRef<Path>>(src: &S, out: &O) {
     let bindings = bindgen::Builder::default()
         .header(&*header.to_string_lossy())
         .allowlist_file(".*bare-kit\\.h")
+        .allowlist_file(".*android\\.h")
         .allowlist_file(".*stdbool\\.h")
         .allowlist_file(".*stddef\\.h")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
