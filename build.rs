@@ -311,7 +311,92 @@ fn build_for_ios<P: AsRef<Path>>(src: &P) -> PathBuf {
 #[cfg(feature = "runtime")]
 fn build_for_linux<P: AsRef<Path>>(src: &P) -> PathBuf {
     let src = src.as_ref();
-    todo!("Support linux");
+    let profile = env::var("PROFILE").unwrap();
+    let temp = env::temp_dir().join(PLUGIN).join(profile);
+    let arch = match &*env::var("CARGO_CFG_TARGET_ARCH").unwrap() {
+        "aarch64" => "arm64",
+        "x86_64" => "x64",
+        arch => panic!("Unsupported target architecture: {arch}"),
+    };
+    let target = format!("linux-{arch}");
+    let build = temp.join("build").join(&target);
+    let scratch = temp.join("scratch").join(&target);
+    let dest = temp.join("lib").join(&target);
+
+    if dest.join("libbare-kit.so").exists() {
+        return dest;
+    }
+
+    let mut args = vec![
+        "--yes",
+        MAKE,
+        "generate",
+        "--source",
+        src.to_str().unwrap(),
+        "--build",
+        build.to_str().unwrap(),
+        "--platform",
+        "linux",
+        "--arch",
+        arch,
+    ];
+
+    if env::var("DEBUG").unwrap() == "true" {
+        args.push("--debug");
+    }
+
+    assert!(
+        Command::new(RUNNER).args(args).status().unwrap().success(),
+        "Configure failed",
+    );
+    assert!(
+        Command::new(RUNNER)
+            .args(["--yes", MAKE, "build", "--build", build.to_str().unwrap()])
+            .status()
+            .unwrap()
+            .success(),
+        "Build failed"
+    );
+    assert!(
+        Command::new(RUNNER)
+            .args([
+                "--yes",
+                MAKE,
+                "install",
+                "--build",
+                build.to_str().unwrap(),
+                "--prefix",
+                scratch.to_str().unwrap()
+            ])
+            .status()
+            .unwrap()
+            .success(),
+        "Install failed"
+    );
+
+    fs::create_dir_all(&dest.parent().unwrap()).unwrap();
+    #[cfg(unix)]
+    os::unix::fs::symlink(&scratch.join("lib"), &dest)
+        .or_else(|err| {
+            if err.kind() == std::io::ErrorKind::AlreadyExists {
+                Ok(())
+            } else {
+                Err(err)
+            }
+        })
+        .unwrap();
+    #[cfg(windows)]
+    os::windows::fs::symlink_dir(&scratch.join("lib"), &dest)
+        .or_else(|err| {
+            if err.kind() == std::io::ErrorKind::AlreadyExists {
+                Ok(())
+            } else {
+                Err(err)
+            }
+        })
+        .unwrap();
+
+    dest
 }
 
 #[cfg(feature = "runtime")]

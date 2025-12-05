@@ -43,7 +43,6 @@ pub fn autolink() {
             .to_string();
         let dest = match platform {
             "darwin" => "Frameworks",
-            "linux" => "lib",
             _ => "",
         };
 
@@ -316,7 +315,108 @@ fn link_for_ios<P: AsRef<Path>>(src: &P) -> PathBuf {
 
 fn link_for_linux<P: AsRef<Path>>(src: &P) -> PathBuf {
     let src = src.as_ref();
-    todo!("Link Linux!");
+    let out = PathBuf::from(env::var("OUT_DIR").unwrap()).join("lib");
+    let profile = env::var("PROFILE").unwrap();
+    let temp = env::temp_dir().join(PLUGIN).join(profile);
+    let arch = match &*env::var("CARGO_CFG_TARGET_ARCH").unwrap() {
+        "aarch64" => "arm64",
+        "x86_64" => "x64",
+        arch => panic!("Unsupported target architecture: {arch}"),
+    };
+    let target = format!("linux-{arch}");
+    let scratch = temp.join("scratch").join(&target);
+    let dest = temp.join("lib").join(&target);
+    let node = src.parent().unwrap();
+    assert!(
+        node.join("package.json").exists(),
+        "Could not find package.json in {}",
+        node.display()
+    );
+    let entry = node.join("bare/index.js");
+    let builtins = node.join("bare/builtins.json");
+    let bundle = node.join("bare/index.bundle.json");
+
+    assert!(
+        Command::new(RUNNER)
+            .args([
+                "--yes",
+                LINK,
+                "--target",
+                &*target,
+                "--out",
+                scratch.to_str().unwrap()
+            ])
+            .current_dir(&node)
+            .status()
+            .unwrap()
+            .success(),
+        "Linking failed"
+    );
+
+    println!("cargo::rustc-link-arg=-Wl,-rpath=$ORIGIN");
+    println!("cargo::rustc-link-search=native={}", dest.display());
+
+    for lib in
+        fs::read_dir(&dest)
+            .unwrap()
+            .filter_map(|so: Result<fs::DirEntry, std::io::Error>| {
+                if let Some(so) = so.ok() {
+                    if so.file_name().to_string_lossy().ends_with(".so") {
+                        return Some(so);
+                    }
+                }
+                return None;
+            })
+    {
+        let filepath = lib.path();
+        let filename = &*filepath.file_stem().unwrap().to_string_lossy();
+        let libname = filename.strip_prefix("lib").unwrap_or(filename);
+
+        println!("cargo::rustc-link-lib=dylib={libname}");
+    }
+
+    #[cfg(unix)]
+    os::unix::fs::symlink(&dest, &out)
+        .or_else(|err| {
+            if err.kind() == std::io::ErrorKind::AlreadyExists {
+                Ok(())
+            } else {
+                Err(err)
+            }
+        })
+        .unwrap();
+    #[cfg(windows)]
+    os::windows::fs::symlink_dir(&dest, &out)
+        .or_else(|err| {
+            if err.kind() == std::io::ErrorKind::AlreadyExists {
+                Ok(())
+            } else {
+                Err(err)
+            }
+        })
+        .unwrap();
+
+    assert!(
+        Command::new(RUNNER)
+            .args([
+                "--yes",
+                PACK,
+                "--preset",
+                "linux",
+                "--builtins",
+                builtins.to_str().unwrap(),
+                "--linked",
+                "--out",
+                bundle.to_str().unwrap(),
+                entry.to_str().unwrap()
+            ])
+            .status()
+            .unwrap()
+            .success(),
+        "Bundling failed"
+    );
+
+    out
 }
 
 fn link_for_windows<P: AsRef<Path>>(src: &P) -> PathBuf {
