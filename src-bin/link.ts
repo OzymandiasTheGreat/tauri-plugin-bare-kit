@@ -146,7 +146,9 @@ export default class BareKitLinker {
       settings[X64_PATH_KEY] = `${settings[X64_PATH_KEY]} ${SearchPath}`
     }
 
-    const frameworks = await fs.readdir(dest).then((frameworks) => [BareKit, ...frameworks])
+    const frameworks = await fs
+      .readdir(dest)
+      .then((frameworks) => frameworks.filter((f) => path.extname(f) === ".xcframework"))
     const filtered = dependencies.filter(
       (d) => !frameworks.some((f) => d.framework?.includes(f.slice(0, f.indexOf(".")))),
     )
@@ -163,7 +165,7 @@ export default class BareKitLinker {
     })
     console.log(`🟢 XCode project template updated`)
 
-    const xcodegen = spawn("xcodegen", ["generate", "--spec", template])
+    const xcodegen = spawn("xcodegen", ["generate", "--spec", template], { stdio: "inherit" })
     await new Promise((resolve, reject) => {
       xcodegen.on("error", reject)
       xcodegen.on("close", resolve)
@@ -174,6 +176,7 @@ export default class BareKitLinker {
     console.log(`🟢 XCode project generated`)
 
     await fs.symlink(dest, path.join(node, Frameworks)).catch((err) => {
+      if (err.code === "EEXIST") return
       console.error(`🛑`, err)
       process.exit(1)
     })
