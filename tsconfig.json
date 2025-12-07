@@ -4,5 +4,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["./bin-src", "./api-src"]
+  "include": ["./src-bin", "./src-api"]
 }

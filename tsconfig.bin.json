@@ -5,5 +5,5 @@
     "types": ["node"],
     "declaration": false
   },
-  "include": ["./bin-src/**/*.ts"]
+  "include": ["./src-bin/**/*.ts"]
 }

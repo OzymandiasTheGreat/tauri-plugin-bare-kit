@@ -1,0 +1,37 @@
+{
+  "productName": "bare-kit-example",
+  "version": "0.1.0",
+  "identifier": "sh.quince.bare_kit_example",
+  "build": {
+    "beforeDevCommand": "npx expo start --clear",
+    "beforeBuildCommand": "npx expo export --platform web",
+    "devUrl": "http://localhost:8081",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "height": 600,
+        "resizable": true,
+        "title": "bare-kit-example",
+        "width": 800
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}
