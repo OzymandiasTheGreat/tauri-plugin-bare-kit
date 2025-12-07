@@ -96,9 +96,7 @@ targets:
       - sdk: UIKit.framework
       - sdk: WebKit.framework
       - framework: $(PROJECT_DIR)/Frameworks/BareKit.xcframework
-      - framework: $(PROJECT_DIR)/Frameworks/BareKit.xcframework
       - framework: $(PROJECT_DIR)/Frameworks/bare-buffer.3.4.2.xcframework
-      - framework: $(PROJECT_DIR)/Frameworks/bare-fs.4.5.1.xcframework
       - framework: $(PROJECT_DIR)/Frameworks/bare-fs.4.5.2.xcframework
       - framework: $(PROJECT_DIR)/Frameworks/bare-hrtime.2.1.1.xcframework
       - framework: $(PROJECT_DIR)/Frameworks/bare-module-lexer.1.4.7.xcframework
