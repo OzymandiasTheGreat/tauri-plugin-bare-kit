@@ -61,18 +61,16 @@
     "bare-link": "^2.1.10",
     "bare-make": "^1.6.3",
     "bare-pack": "^1.5.1",
+    "bare-stream": "^2.7.0",
     "cmake-fetch": "^1.4.7",
     "events": "npm:bare-events@^2.8.0",
     "libnpmexec": "^10.1.10",
     "paparam": "^1.9.1",
-    "streamx": "^2.23.0",
     "yaml": "^2.8.1"
   },
   "devDependencies": {
-    "@types/b4a": "^1.6.5",
     "@types/libnpmexec": "^2.0.4",
     "@types/node": "^24.9.1",
-    "@types/streamx": "^2.9.5",
     "typescript": "^5.9.3"
   }
 }

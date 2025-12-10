@@ -1,6 +1,10 @@
+// @ts-ignore
 import b4a from "b4a"
 import EventEmitter from "bare-events"
-import { Duplex, Callback } from "streamx"
+// @ts-ignore
+import type { Duplex } from "bare-stream"
+// @ts-ignore
+import { Duplex } from "streamx"
 import NativeBareKit from "./module"
 
 enum CONSTANTS {
@@ -9,6 +13,9 @@ enum CONSTANTS {
   SUSPENDED = 0x4,
 }
 
+type Callback = (err: Error | null) => void
+
+// @ts-ignore
 class BareKitIPC extends Duplex {
   protected _worklet: BareKitWorklet
 
@@ -61,6 +68,7 @@ class BareKitIPC extends Duplex {
     await NativeBareKit.notify(this._worklet.handle)
   }
 
+  // @ts-ignore
   async _read(callback: Callback) {
     const data = await NativeBareKit.read(this._worklet.handle)
 
@@ -73,6 +81,7 @@ class BareKitIPC extends Duplex {
     }
   }
 
+  // @ts-ignore
   async _write(data: Uint8Array, callback: Callback) {
     if (!b4a.isBuffer(data)) {
       data = b4a.from(data)
@@ -87,7 +96,7 @@ class BareKitIPC extends Duplex {
     }
   }
 
-  _continueOpen(err?: Error | null) {
+  _continueOpen(err: Error | null) {
     if (this._pendingOpen === null) {
       if (err) this.destroy(err)
     } else {
