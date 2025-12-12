@@ -1,25 +1,18 @@
-import fs from "fs/promises"
-import link from "bare-link"
-import * as make from "bare-make"
-import { spawn } from "child_process"
-import npx from "libnpmexec"
-import os from "os"
-import path from "path"
-import { fileURLToPath } from "url"
-import { parse, stringify } from "yaml"
-import { exists, find_root } from "./util.js"
+const fs = require("fs/promises")
+const link = require("bare-link")
+const make = require("bare-make")
+const { spawn } = require("child_process")
+const npx = require("libnpmexec")
+const os = require("os")
+const path = require("path")
+const { fileURLToPath } = require("url")
+const { parse, stringify } = require("yaml")
+const { exists, find_root } = require("./util")
 
-export type Arch = "arm" | "arm64" | "ia32" | "x64"
+module.exports = class BareKitLinker {
+  static async android(arch, profile = "debug") {}
 
-export default class BareKitLinker {
-  static async android(arch: Arch, profile = "debug") {}
-
-  static async ios(arch: Arch, profile = "debug") {
-    interface Dependency {
-      framework?: string
-      sdk?: string
-    }
-
+  static async ios(arch, profile = "debug") {
     const BareKit = "BareKit.xcframework"
     const XCode = "src-tauri/gen/apple"
     const Frameworks = path.join(XCode, "Frameworks")
@@ -41,10 +34,7 @@ export default class BareKitLinker {
     const temp = path.join(os.tmpdir(), "tauri-plugin-bare-kit", profile)
     const scratch = path.join(temp, "scratch")
     const dest = path.join(temp, "Frameworks", "ios")
-    const archs: [string, boolean][] = [
-      ["arm64", false],
-      os.arch() === "arm64" ? ["arm64", true] : ["x64", true],
-    ]
+    const archs = [["arm64", false], os.arch() === "arm64" ? ["arm64", true] : ["x64", true]]
     const bare_kit = path.join(dest, BareKit)
 
     if (await exists(bare_kit)) {
@@ -65,7 +55,7 @@ export default class BareKitLinker {
             arch,
             simulator,
             debug: profile === "debug",
-            stdio: "inherit" as any,
+            stdio: "inherit",
           })
           .catch((err) => {
             console.error(`🛑`, err)
@@ -74,7 +64,7 @@ export default class BareKitLinker {
         await make
           .build({
             build,
-            stdio: "inherit" as any,
+            stdio: "inherit",
           })
           .catch((err) => {
             console.error(`🛑`, err)
@@ -84,7 +74,7 @@ export default class BareKitLinker {
           .install({
             build,
             prefix,
-            stdio: "inherit" as any,
+            stdio: "inherit",
           })
           .catch((err) => {
             console.error(`🛑`, err)
@@ -111,7 +101,7 @@ export default class BareKitLinker {
     try {
       for await (const _ of link(node, { preset: "ios", out: dest })) {
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(`🛑`, err)
       process.exit(1)
     }
@@ -136,7 +126,7 @@ export default class BareKitLinker {
     const project = parse(await fs.readFile(template, "utf8"))
     const target = `${project.name}_iOS`
     const settings = project.targets[target].settings.base
-    const dependencies: Dependency[] = project.targets[target].dependencies
+    const dependencies = project.targets[target].dependencies
 
     if (!settings[ARM64_PATH_KEY].includes(SearchPath)) {
       settings[ARM64_PATH_KEY] = `${settings[ARM64_PATH_KEY]} ${SearchPath}`
@@ -186,9 +176,9 @@ export default class BareKitLinker {
     process.exit(0)
   }
 
-  static async darwin(arch: Arch, profile = "debug") {}
+  static async darwin(arch, profile = "debug") {}
 
-  static async linux(arch: Arch, profile = "debug") {}
+  static async linux(arch, profile = "debug") {}
 
-  static async win32(arch: Arch, profile = "debug") {}
+  static async win32(arch, profile = "debug") {}
 }

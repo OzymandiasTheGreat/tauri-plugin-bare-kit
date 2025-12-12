@@ -25,7 +25,11 @@
   "description": "Easy Javascript backends for Tauri apps with powerful bidirectional IPC/RPC - Android 🤖 iOS 📱Linux 🐧 Macos 🖥️ Windows 💩",
   "keywords": [
     "tauri",
-    "bare"
+    "plugin",
+    "bare",
+    "bare-kit",
+    "engine",
+    "runtime"
   ],
   "homepage": "https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit",
   "repository": {
@@ -35,9 +39,13 @@
   "bin": {
     "bare-kit": "./bin/index.js"
   },
-  "type": "module",
-  "types": "./api/index.d.ts",
-  "main": "./api/index.js",
+  "exports": {
+    ".": {
+      "types": "./api/index.d.ts",
+      "default": "./api/index.js"
+    },
+    "./package": "./package.json"
+  },
   "files": [
     "api",
     "bin",
@@ -51,9 +59,7 @@
     "NOTICE",
     "README.md"
   ],
-  "scripts": {
-    "build": "tsc -p tsconfig.api.json && tsc -p tsconfig.bin.json"
-  },
+  "scripts": {},
   "dependencies": {
     "@tauri-apps/api": "^2.9.0",
     "b4a": "^1.7.3",
@@ -63,14 +69,9 @@
     "bare-pack": "^1.5.1",
     "bare-stream": "^2.7.0",
     "cmake-fetch": "^1.4.7",
-    "events": "npm:bare-events@^2.8.0",
     "libnpmexec": "^10.1.10",
     "paparam": "^1.9.1",
     "yaml": "^2.8.1"
   },
-  "devDependencies": {
-    "@types/libnpmexec": "^2.0.4",
-    "@types/node": "^24.9.1",
-    "typescript": "^5.9.3"
-  }
+  "devDependencies": {}
 }

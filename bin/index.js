@@ -1,15 +1,12 @@
 #!/usr/bin/env node
-// @ts-ignore
-import { command, flag, header } from "paparam"
-import BareKitCleaner from "./clean.js"
-import BareKitLinker, { Arch } from "./link.js"
+const { command, flag, header } = require("paparam")
+const BareKitCleaner = require("./clean")
+const BareKitLinker = require("./link")
 
-type Platform = keyof typeof BareKitLinker
-
-const FAT: Platform[] = ["android", "ios", "darwin"] as const
-const THIN: Platform[] = ["linux", "win32"] as const
-const PLATFORMS: Platform[] = [...FAT, ...THIN] as const
-const ARCHS: Partial<Record<Platform, Arch[]>> = {
+const FAT = ["android", "ios", "darwin"]
+const THIN = ["linux", "win32"]
+const PLATFORMS = [...FAT, ...THIN]
+const ARCHS = {
   android: ["arm", "arm64", "ia32", "x64"],
   ios: ["arm64", "x64"],
   darwin: ["arm64", "x64"],
@@ -38,11 +35,7 @@ const cmd = command(
   link,
 )
 
-const {
-  flags,
-  name,
-}: { flags: { platform?: Platform; arch?: Arch; profile?: string }; name: "clean" | "link" } =
-  cmd.parse()
+const { flags, name } = cmd.parse()
 
 if (name === "clean") {
   await BareKitCleaner.clean()
@@ -83,7 +76,7 @@ if (name === "clean") {
     process.exit(0)
   }
 
-  await BareKitLinker[flags.platform](flags.arch!, flags.profile)
+  await BareKitLinker[flags.platform](flags.arch, flags.profile)
 } else {
   console.log(cmd.help())
 }

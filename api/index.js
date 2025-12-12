@@ -1,29 +1,16 @@
-// @ts-ignore
-import b4a from "b4a"
-import EventEmitter from "bare-events"
-// @ts-ignore
-import type { Duplex } from "bare-stream"
-// @ts-ignore
-import { Duplex } from "streamx"
-import NativeBareKit from "./module"
+const b4a = require("b4a")
+const EventEmitter = require("bare-events")
+const { Duplex } = require("streamx")
+const NativeBareKit = require("./module")
 
-enum CONSTANTS {
-  STARTED = 0x1,
-  TERMINATED = 0x2,
-  SUSPENDED = 0x4,
+const CONSTANTS = {
+  STARTED: 0x1,
+  TERMINATED: 0x2,
+  SUSPENDED: 0x4,
 }
 
-type Callback = (err: Error | null) => void
-
-// @ts-ignore
-class BareKitIPC extends Duplex {
-  protected _worklet: BareKitWorklet
-
-  protected _pendingOpen: Callback | null
-  protected _pendingRead: Callback | null
-  protected _pendingWrite: [Uint8Array, Callback] | null
-
-  constructor(worklet: BareKitWorklet) {
+class BareIPC extends Duplex {
+  constructor(worklet) {
     super()
 
     this._worklet = worklet
@@ -40,11 +27,11 @@ class BareKitIPC extends Duplex {
 
   toJSON() {
     return {
-      worklet: this.worklet,
+      worklet: this._worklet,
     }
   }
 
-  _open(callback: Callback) {
+  _open(callback) {
     if (this._worklet.started) {
       callback(null)
     } else {
@@ -54,23 +41,22 @@ class BareKitIPC extends Duplex {
 
   async _update() {
     return NativeBareKit.update(
-      this._worklet.handle,
+      this._worklet._handle,
       this._pendingRead !== null,
       this._pendingWrite !== null,
     )
   }
 
-  async _poll(data: { readable: boolean; writable: boolean }) {
+  async _poll({ readable, writable }) {
     if (this._worklet.terminated) return
-    if (data.readable) await this._continueRead()
-    if (data.writable) await this._continueWrite()
+    if (readable) await this._continueRead()
+    if (writable) await this._continueWrite()
 
-    await NativeBareKit.notify(this._worklet.handle)
+    await NativeBareKit.notify(this._worklet._handle)
   }
 
-  // @ts-ignore
-  async _read(callback: Callback) {
-    const data = await NativeBareKit.read(this._worklet.handle)
+  async _read(callback) {
+    const data = await NativeBareKit.read(this._worklet._handle)
 
     if (data) {
       this.push(data)
@@ -81,22 +67,22 @@ class BareKitIPC extends Duplex {
     }
   }
 
-  // @ts-ignore
-  async _write(data: Uint8Array, callback: Callback) {
+  async _write(data, callback) {
     if (!b4a.isBuffer(data)) {
       data = b4a.from(data)
     }
 
-    const written = await NativeBareKit.write(this._worklet.handle, data)
+    const written = await NativeBareKit.write(this._worklet._handle, data)
 
-    if (written === data.byteLength) callback(null)
-    else {
+    if (written === data.byteLength) {
+      callback(null)
+    } else {
       this._pendingWrite = [data.subarray(written), callback]
       await this._update()
     }
   }
 
-  _continueOpen(err: Error | null) {
+  _continueOpen(err) {
     if (this._pendingOpen === null) {
       if (err) this.destroy(err)
     } else {
@@ -123,23 +109,18 @@ class BareKitIPC extends Duplex {
   }
 }
 
-class BareKitWorklet extends EventEmitter {
-  protected static _worklets = new Set<BareKitWorklet>()
-
-  protected _state: number
-  protected _ipc: BareKitIPC
-  protected _handle!: number
+class BareWorklet extends EventEmitter {
+  static _worklets = new Set()
 
   constructor() {
     super()
 
     this._state = 0
-    this._ipc = new BareKitIPC(this)
+    this._handle = -1
+    this._ipc = new BareIPC(this)
   }
 
-  static async init(
-    options: { memoryLimit?: number; assets?: string | null } = {},
-  ): Promise<BareKitWorklet> {
+  static async init(options = {}) {
     const { memoryLimit = 0, assets = null } = options
 
     if (typeof memoryLimit !== "number") {
@@ -154,7 +135,7 @@ class BareKitWorklet extends EventEmitter {
       )
     }
 
-    const worklet = new BareKitWorklet()
+    const worklet = new BareWorklet()
     worklet._handle = await NativeBareKit.init(memoryLimit, assets, worklet._ipc._poll)
 
     return worklet
@@ -180,7 +161,7 @@ class BareKitWorklet extends EventEmitter {
     return (this._state & CONSTANTS.SUSPENDED) !== 0
   }
 
-  async start(filename: string, source: string | Uint8Array | null, args: string[] = []) {
+  async start(filename, source, args = []) {
     if (this.started) throw new Error("Worklet has already been started")
     if (this.terminated) throw new Error("Worklet has been terminated")
 
@@ -202,7 +183,7 @@ class BareKitWorklet extends EventEmitter {
       }
     }
 
-    let err: any = null
+    let err = null
     try {
       if (typeof source === "string") {
         await NativeBareKit.startUTF8(this._handle, filename, source, args)
@@ -216,7 +197,7 @@ class BareKitWorklet extends EventEmitter {
 
       this.emit("start")
 
-      BareKitWorklet._worklets.add(this)
+      BareWorklet._worklets.add(this)
     } catch (e) {
       err = e
     }
@@ -243,7 +224,7 @@ class BareKitWorklet extends EventEmitter {
     this.emit("suspend")
   }
 
-  static async suspend(linger?: number) {
+  static async suspend(linger) {
     for (const worklet of this._worklets) {
       await worklet.suspend(linger)
     }
@@ -266,7 +247,7 @@ class BareKitWorklet extends EventEmitter {
     }
   }
 
-  async wakeup(deadline: number = 0) {
+  async wakeup(deadline = 0) {
     if (!this.started) throw new Error("Worklet has not been started")
     if (this.terminated) throw new Error("Worklet has been terminated")
 
@@ -281,7 +262,7 @@ class BareKitWorklet extends EventEmitter {
     this.emit("wakeup")
   }
 
-  static async wakeup(deadline: number) {
+  static async wakeup(deadline) {
     for (const worklet of this._worklets) {
       await worklet.wakeup(deadline)
     }
@@ -297,7 +278,7 @@ class BareKitWorklet extends EventEmitter {
     this._state |= CONSTANTS.TERMINATED
     this._handle = -1
 
-    BareKitWorklet._worklets.delete(this)
+    BareWorklet._worklets.delete(this)
 
     this.emit("terminate")
   }
@@ -311,5 +292,4 @@ class BareKitWorklet extends EventEmitter {
   }
 }
 
-export const Worklet = BareKitWorklet
-export type Worklet = BareKitWorklet
+module.exports.Worklet = BareWorklet

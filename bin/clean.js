@@ -1,9 +1,9 @@
-import fs from "fs/promises"
-import os from "os"
-import path from "path"
-import { exists } from "./util.js"
+const fs = require("fs/promises")
+const os = require("os")
+const path = require("path")
+const { exists } = require("./util")
 
-export default class BareKitCleaner {
+module.exports = class BareKitCleaner {
   static async clean() {
     const temp = path.join(os.tmpdir(), "tauri-plugin-bare-kit")
 
@@ -15,7 +15,7 @@ export default class BareKitCleaner {
         await fs.rm(temp, { recursive: true, force: true })
         console.log(`🚀 Build artifacts and caches cleared!`)
         process.exit(0)
-      } catch (err: any) {
+      } catch (err) {
         console.error(`🛑 Failed to remove build artifacts and caches`)
         console.error(err.message)
         process.exit(1)
