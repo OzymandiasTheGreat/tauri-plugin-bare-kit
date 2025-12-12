@@ -70,15 +70,7 @@ fn link_for_android<P: AsRef<Path>>(src: &P) -> PathBuf {
         "aarch64" => "arm64-v8a",
         arch => arch,
     };
-    let node = src.parent().unwrap();
-    assert!(
-        node.join("package.json").exists(),
-        "Could not find package.json in {}",
-        node.display()
-    );
-    let entry = node.join("bare/index.js");
-    let builtins = node.join("bare/builtins.json");
-    let bundle = node.join("bare/index.bundle.json");
+    let node = find_node(&src);
 
     assert!(
         Command::new(RUNNER)
@@ -136,25 +128,7 @@ fn link_for_android<P: AsRef<Path>>(src: &P) -> PathBuf {
         }
     }
 
-    assert!(
-        Command::new(RUNNER)
-            .args([
-                "--yes",
-                PACK,
-                "--preset",
-                "android",
-                "--builtins",
-                builtins.to_str().unwrap(),
-                "--linked",
-                "--out",
-                bundle.to_str().unwrap(),
-                entry.to_str().unwrap(),
-            ])
-            .status()
-            .unwrap()
-            .success(),
-        "Bundling failed"
-    );
+    bundle("android", &node);
 
     out
 }
@@ -165,15 +139,7 @@ fn link_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
     let profile = env::var("PROFILE").unwrap();
     let temp = env::temp_dir().join(PLUGIN).join(profile);
     let dest = temp.join("Frameworks").join("darwin");
-    let node = src.parent().unwrap();
-    assert!(
-        node.join("package.json").exists(),
-        "Could not find package.json in {}",
-        node.display()
-    );
-    let entry = node.join("bare/index.js");
-    let builtins = node.join("bare/builtins.json");
-    let bundle = node.join("bare/index.bundle.json");
+    let node = find_node(&src);
 
     assert!(
         Command::new(RUNNER)
@@ -220,25 +186,7 @@ fn link_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
         })
         .unwrap();
 
-    assert!(
-        Command::new(RUNNER)
-            .args([
-                "--yes",
-                PACK,
-                "--preset",
-                "darwin",
-                "--builtins",
-                builtins.to_str().unwrap(),
-                "--linked",
-                "--out",
-                bundle.to_str().unwrap(),
-                entry.to_str().unwrap()
-            ])
-            .status()
-            .unwrap()
-            .success(),
-        "Bundling failed"
-    );
+    bundle("darwin", &node);
 
     out
 }
@@ -246,15 +194,7 @@ fn link_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
 fn link_for_ios<P: AsRef<Path>>(src: &P) -> PathBuf {
     let src = src.as_ref();
     let out = src.join("gen/apple/Frameworks");
-    let node = src.parent().unwrap();
-    assert!(
-        node.join("package.json").exists(),
-        "Could not find package.json in {}",
-        node.display()
-    );
-    let entry = node.join("bare/index.js");
-    let builtins = node.join("bare/builtins.json");
-    let bundle = node.join("bare/index.bundle.json");
+    let node = find_node(&src);
     let arch = match &*env::var("CARGO_CFG_TARGET_ARCH").unwrap() {
         "aarch64" => "arm64",
         "x86_64" => "x86_64",
@@ -290,25 +230,7 @@ fn link_for_ios<P: AsRef<Path>>(src: &P) -> PathBuf {
         println!("cargo::rustc-link-lib=framework={framework}");
     }
 
-    assert!(
-        Command::new(RUNNER)
-            .args([
-                "--yes",
-                PACK,
-                "--preset",
-                "ios",
-                "--builtins",
-                builtins.to_str().unwrap(),
-                "--linked",
-                "--out",
-                bundle.to_str().unwrap(),
-                entry.to_str().unwrap()
-            ])
-            .status()
-            .unwrap()
-            .success(),
-        "Bundling failed"
-    );
+    bundle("ios", &node);
 
     out
 }
@@ -326,15 +248,7 @@ fn link_for_linux<P: AsRef<Path>>(src: &P) -> PathBuf {
     let target = format!("linux-{arch}");
     let scratch = temp.join("scratch").join(&target);
     let dest = temp.join("lib").join(&target);
-    let node = src.parent().unwrap();
-    assert!(
-        node.join("package.json").exists(),
-        "Could not find package.json in {}",
-        node.display()
-    );
-    let entry = node.join("bare/index.js");
-    let builtins = node.join("bare/builtins.json");
-    let bundle = node.join("bare/index.bundle.json");
+    let node = find_node(&src);
 
     assert!(
         Command::new(RUNNER)
@@ -396,25 +310,7 @@ fn link_for_linux<P: AsRef<Path>>(src: &P) -> PathBuf {
         })
         .unwrap();
 
-    assert!(
-        Command::new(RUNNER)
-            .args([
-                "--yes",
-                PACK,
-                "--preset",
-                "linux",
-                "--builtins",
-                builtins.to_str().unwrap(),
-                "--linked",
-                "--out",
-                bundle.to_str().unwrap(),
-                entry.to_str().unwrap()
-            ])
-            .status()
-            .unwrap()
-            .success(),
-        "Bundling failed"
-    );
+    bundle("linux", &node);
 
     out
 }
@@ -467,15 +363,7 @@ fn link_for_windows<P: AsRef<Path>>(src: &P) -> PathBuf {
     let target = format!("win32-{arch}");
     let bin = temp.join("bin").join(&target);
     let lib = temp.join("lib").join(&target);
-    let node = src.parent().unwrap();
-    assert!(
-        node.join("package.json").exists(),
-        "Could not find package.json in {}",
-        node.display()
-    );
-    let entry = node.join("bare/index.js");
-    let builtins = node.join("bare/builtins.json");
-    let bundle = node.join("bare/index.bundle.json");
+    let node = find_node(&src);
 
     assert!(
         Command::new(RUNNER)
@@ -529,25 +417,97 @@ fn link_for_windows<P: AsRef<Path>>(src: &P) -> PathBuf {
         })
         .unwrap();
 
+    bundle("win32", &node);
+
+    out
+}
+
+fn bundle<P: AsRef<Path>>(preset: &str, src: &P) {
+    let src = src.as_ref();
+    let bundle = src.join("app.bundle.json");
+    let entry = find_bare_entry(&src);
+    let builtins = find_bare_config("builtins.json", &src);
+    let imports = find_bare_config("imports.json", &src);
+
     assert!(
         Command::new(RUNNER)
             .args([
                 "--yes",
                 PACK,
                 "--preset",
-                "win32",
+                preset,
                 "--builtins",
                 builtins.to_str().unwrap(),
+                "--imports",
+                imports.to_str().unwrap(),
                 "--linked",
                 "--out",
                 bundle.to_str().unwrap(),
-                entry.to_str().unwrap()
+                entry.to_str().unwrap(),
             ])
+            .current_dir(&src)
             .status()
             .unwrap()
             .success(),
         "Bundling failed"
     );
+}
 
-    out
+fn find_node<P: AsRef<Path>>(src: &P) -> PathBuf {
+    let src = src.as_ref();
+    let manifest = "package.json";
+
+    if src.join(manifest).exists() {
+        return src.to_path_buf();
+    }
+
+    let mut parent = src.parent();
+
+    while let Some(src) = parent {
+        if src.join(manifest).exists() {
+            return src.to_path_buf();
+        }
+
+        parent = src.parent();
+    }
+
+    panic!("Could not find {manifest} in any of the parent directories")
+}
+
+fn find_bare_entry<P: AsRef<Path>>(src: &P) -> PathBuf {
+    let src = src.as_ref();
+    let entry = "app.js";
+    let roots = vec![
+        "bare",
+        "bare/dist",
+        "bare/src",
+        "src-bare",
+        "src-bare/dist",
+        "src-bare/src",
+    ];
+
+    for root in roots {
+        let candidate = src.join(root).join(entry);
+
+        if candidate.exists() {
+            return candidate.to_path_buf();
+        }
+    }
+
+    panic!("Could not find entry point for bare bundle")
+}
+
+fn find_bare_config<P: AsRef<Path>>(filename: &str, src: &P) -> PathBuf {
+    let src = src.as_ref();
+    let roots = vec!["bare", "src-bare"];
+
+    for root in roots {
+        let candidate = src.join(root).join(filename);
+
+        if candidate.exists() {
+            return candidate.to_path_buf();
+        }
+    }
+
+    panic!("Could not find {filename} required for bare bundle")
 }

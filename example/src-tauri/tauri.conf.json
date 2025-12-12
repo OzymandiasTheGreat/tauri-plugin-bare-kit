@@ -1,27 +1,27 @@
 {
-  "productName": "bare-kit-example",
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "bare-messenger",
   "version": "0.1.0",
-  "identifier": "sh.quince.bare_kit_example",
+  "identifier": "sh.quince.bare_messenger",
   "build": {
-    "beforeDevCommand": "npx expo start --clear",
-    "beforeBuildCommand": "npx expo export --platform web",
+    "frontendDist": "../dist",
     "devUrl": "http://localhost:8081",
-    "frontendDist": "../dist"
+    "beforeDevCommand": "npm start",
+    "beforeBuildCommand": "npm run build"
   },
   "app": {
-    "withGlobalTauri": false,
-    "security": {
-      "csp": null
-    },
     "windows": [
       {
-        "fullscreen": false,
+        "title": "Bare Messenger",
+        "width": 800,
         "height": 600,
         "resizable": true,
-        "title": "bare-kit-example",
-        "width": 800
+        "fullscreen": false
       }
-    ]
+    ],
+    "security": {
+      "csp": null
+    }
   },
   "bundle": {
     "active": true,

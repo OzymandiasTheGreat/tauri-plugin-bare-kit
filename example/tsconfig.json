@@ -1,7 +1,19 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true,
-    "types": ["react"]
-  }
+    "types": ["react"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/bundle": ["./app.bundle.json"],
+      "@/common/*": ["./src-common/*"]
+    },
+    "resolvePackageJsonExports": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".expo/types/**/*.ts",
+    "src/expo-env.d.ts",
+    "expo-env.d.ts"
+  ]
 }
