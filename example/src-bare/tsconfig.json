@@ -6,6 +6,7 @@
     "outDir": "./dist",
     "customConditions": ["bare"],
     "resolveJsonModule": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "strictNullChecks": true
   }
 }

@@ -30,6 +30,8 @@ interface WorkletOptions {
   assets?: string | null
 }
 
+export type { Worklet }
+
 export function useWorklet(options: WorkletOptions = {}): Worklet | null {
   const { filename = "/app.bundle", source, args = [], memoryLimit, assets } = options
   const [worklet, setWorklet] = useState<Worklet | null>(null)

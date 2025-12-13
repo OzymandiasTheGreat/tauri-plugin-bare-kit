@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
+    "@preact/signals-react": "^3.6.1",
     "@react-navigation/native": "^7.1.8",
     "@tauri-apps/api": "^2.9.1",
     "b4a": "^1.7.3",

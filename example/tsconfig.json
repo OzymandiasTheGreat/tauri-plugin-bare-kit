@@ -7,7 +7,8 @@
       "@/bundle": ["./app.bundle.json"],
       "@/common/*": ["./src-common/*"]
     },
-    "resolvePackageJsonExports": true
+    "resolvePackageJsonExports": true,
+    "strictNullChecks": true
   },
   "include": [
     "src/**/*.ts",
