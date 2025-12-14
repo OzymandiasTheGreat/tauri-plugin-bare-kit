@@ -36,15 +36,15 @@ export default async function bench(ipc: IPC) {
           `Encrypt/decrypt failed for iteration ${i}`,
         )
       } else {
-        const payload = []
+        const payload: Uint8Array[] = []
         const decryptRequest = ipc.request(Method.BenchDecryptStreaming)
         const decryptRequestStream = decryptRequest.createRequestStream()
         const decryptResponseStream = decryptRequest.createResponseStream()
-        const decryptResponse = []
+        const decryptResponse: Uint8Array[] = []
 
         decryptRequestStream.on("error", console.error)
         decryptResponseStream.on("error", console.error)
-        decryptResponseStream.on("data", (data) => decryptResponse.push(data))
+        decryptResponseStream.on("data", (data: Uint8Array) => decryptResponse.push(data))
 
         const promise = new Promise<void>((resolve) =>
           decryptResponseStream.on("end", () => {
@@ -58,11 +58,11 @@ export default async function bench(ipc: IPC) {
         const encryptRequest = ipc.request(Method.BenchEncryptStreaming)
         const encryptRequestStream = encryptRequest.createRequestStream()
         const encryptResponseStream = encryptRequest.createResponseStream()
-        const encryptResponse = []
+        const encryptResponse: Uint8Array[] = []
 
         encryptRequestStream.on("error", console.error)
         encryptResponseStream.on("error", console.error)
-        encryptResponseStream.on("data", (data) => {
+        encryptResponseStream.on("data", (data: Uint8Array) => {
           encryptResponse.push(data)
           decryptRequestStream.write(data)
         })

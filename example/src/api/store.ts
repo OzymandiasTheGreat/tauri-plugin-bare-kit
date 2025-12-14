@@ -1,6 +1,6 @@
 import { signal, type Signal } from "@preact/signals-react"
 
-import Deferred from "@/api/deferred"
+import Deferred from "@/common/deferred"
 import type { IPC, Worklet } from "@/hooks/useBareKit"
 
 export class Store {

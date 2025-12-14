@@ -1,26 +1,9 @@
 import RPC from "bare-rpc"
-import type { Encoder } from "compact-encoding"
 import { useEffect, useMemo, useState } from "react"
-
 import { Worklet } from "tauri-plugin-bare-kit-api"
 
-declare module "bare-rpc" {
-  class CommandRouter {
-    respond(
-      command: number,
-      handler: (req: RPC.IncomingRequest, data: Uint8Array) => void | Promise<void>,
-    ): void
-    respond<V, Q = V, R = V>(
-      command: number,
-      options: {
-        valueEncoding?: Encoder<V>
-        requestEncoding?: Encoder<Q>
-        responseEncoding?: Encoder<R>
-      },
-      handler: (req: RPC.IncomingRequest, data: V | Q) => V | R | void | Promise<V | R | void>,
-    ): void
-  }
-}
+// Adds missing types for CommandRouter
+import type {} from "@/common/bare-rpc"
 
 interface WorkletOptions {
   filename?: string

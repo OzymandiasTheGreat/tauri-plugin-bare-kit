@@ -1,16 +1,11 @@
 import { useCallback } from "react"
 import { Button, FlatList, ListRenderItem, Text, View } from "react-native"
 
+import { randint } from "@/common/util"
 import { useStore } from "@/hooks/useStore"
 import createThemedStyleSheet from "@/hooks/useTheme"
 
 const Template = "This is a very long hash string"
-
-function randint(min = 1, max = Number.MAX_SAFE_INTEGER): number {
-  min = Math.ceil(min)
-  max = Math.floor(max)
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
 
 export default function HomeScreen() {
   const styles = useStyles()

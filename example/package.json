@@ -19,6 +19,7 @@
     "b4a": "^1.7.3",
     "bare-rpc": "^1.0.0",
     "compact-encoding": "^2.18.0",
+    "dns-discovery": "^6.2.3",
     "expo": "~54.0.27",
     "expo-linking": "~8.0.10",
     "expo-router": "~6.0.17",
@@ -30,7 +31,8 @@
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1",
     "sodium-native": "^5.0.10",
-    "tauri-plugin-bare-kit-api": "file:../"
+    "tauri-plugin-bare-kit-api": "file:../",
+    "z32": "^1.1.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.9.6",
