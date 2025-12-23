@@ -1,15 +1,15 @@
-const fs = require("fs/promises")
-const link = require("bare-link")
-const make = require("bare-make")
-const { spawn } = require("child_process")
-const npx = require("libnpmexec")
-const os = require("os")
-const path = require("path")
-const { fileURLToPath } = require("url")
-const { parse, stringify } = require("yaml")
-const { exists, find_root } = require("./util")
+import fs from "fs/promises"
+import link from "bare-link"
+import make from "bare-make"
+import { spawn } from "child_process"
+import npx from "libnpmexec"
+import os from "os"
+import path from "path"
+import { fileURLToPath } from "url"
+import { parse, stringify } from "yaml"
+import { exists, find_root } from "./util.mjs"
 
-module.exports = class BareKitLinker {
+export default class BareKitLinker {
   static async android(arch, profile = "debug") {}
 
   static async ios(arch, profile = "debug") {
@@ -38,65 +38,65 @@ module.exports = class BareKitLinker {
     const bare_kit = path.join(dest, BareKit)
 
     if (await exists(bare_kit)) {
-      console.log(`🟢 ${BareKit} found, skipping build`)
-    } else {
-      const frameworks = ["-create-xcframework"]
-
-      for (const [arch, simulator] of archs) {
-        const target = `ios-${arch}${simulator ? "-simulator" : ""}`
-        const build = path.join(temp, "build", target)
-        const prefix = path.join(scratch, target)
-
-        await make
-          .generate({
-            source,
-            build,
-            platform: "ios",
-            arch,
-            simulator,
-            debug: profile === "debug",
-            stdio: "inherit",
-          })
-          .catch((err) => {
-            console.error(`🛑`, err)
-            process.exit(1)
-          })
-        await make
-          .build({
-            build,
-            stdio: "inherit",
-          })
-          .catch((err) => {
-            console.error(`🛑`, err)
-            process.exit(1)
-          })
-        await make
-          .install({
-            build,
-            prefix,
-            stdio: "inherit",
-          })
-          .catch((err) => {
-            console.error(`🛑`, err)
-            process.exit(1)
-          })
-
-        const framework = path.join(prefix, "Frameworks/BareKit.framework")
-        frameworks.push("-framework", framework)
-      }
-
-      frameworks.push("-output", bare_kit)
-
-      const xcodebuild = spawn("xcodebuild", frameworks)
-      await new Promise((resolve, reject) => {
-        xcodebuild.on("error", reject)
-        xcodebuild.on("close", resolve)
-      }).catch((err) => {
-        console.error(`🛑`, err)
-        process.exit(1)
-      })
-      console.log(`🟢 ${BareKit} combined binary built`)
+      await fs.rm(bare_kit, { force: true, recursive: true })
     }
+
+    const frameworks = ["-create-xcframework"]
+
+    for (const [arch, simulator] of archs) {
+      const target = `ios-${arch}${simulator ? "-simulator" : ""}`
+      const build = path.join(temp, "build", target)
+      const prefix = path.join(scratch, target)
+
+      await make
+        .generate({
+          source,
+          build,
+          platform: "ios",
+          arch,
+          simulator,
+          debug: profile === "debug",
+          stdio: "inherit",
+        })
+        .catch((err) => {
+          console.error(`🛑`, err)
+          process.exit(1)
+        })
+      await make
+        .build({
+          build,
+          stdio: "inherit",
+        })
+        .catch((err) => {
+          console.error(`🛑`, err)
+          process.exit(1)
+        })
+      await make
+        .install({
+          build,
+          prefix,
+          stdio: "inherit",
+        })
+        .catch((err) => {
+          console.error(`🛑`, err)
+          process.exit(1)
+        })
+
+      const framework = path.join(prefix, "Frameworks/BareKit.framework")
+      frameworks.push("-framework", framework)
+    }
+
+    frameworks.push("-output", bare_kit)
+
+    const xcodebuild = spawn("xcodebuild", frameworks)
+    await new Promise((resolve, reject) => {
+      xcodebuild.on("error", reject)
+      xcodebuild.on("close", resolve)
+    }).catch((err) => {
+      console.error(`🛑`, err)
+      process.exit(1)
+    })
+    console.log(`🟢 ${BareKit} combined binary built`)
 
     try {
       for await (const _ of link(node, { preset: "ios", out: dest })) {
@@ -136,14 +136,14 @@ module.exports = class BareKitLinker {
       settings[X64_PATH_KEY] = `${settings[X64_PATH_KEY]} ${SearchPath}`
     }
 
-    const frameworks = await fs
+    const _frameworks = await fs
       .readdir(dest)
       .then((frameworks) => frameworks.filter((f) => path.extname(f) === ".xcframework"))
     const filtered = dependencies.filter(
       (d) => !frameworks.some((f) => d.framework?.includes(f.slice(0, f.indexOf(".")))),
     )
 
-    for (const framework of frameworks) {
+    for (const framework of _frameworks) {
       filtered.push({ framework: path.join(SearchPath, framework) })
     }
 

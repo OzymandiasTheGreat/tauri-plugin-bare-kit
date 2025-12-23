@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-const { command, flag, header } = require("paparam")
-const BareKitCleaner = require("./clean")
-const BareKitLinker = require("./link")
+import { command, flag, header } from "paparam"
+import BareKitCleaner from "./clean.mjs"
+import BareKitLinker from "./link.mjs"
 
 const FAT = ["android", "ios", "darwin"]
 const THIN = ["linux", "win32"]

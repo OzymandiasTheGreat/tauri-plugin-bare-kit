@@ -1,7 +1,7 @@
-const fs = require("fs/promises")
-const path = require("path")
+import fs from "fs/promises"
+import path from "path"
 
-module.exports.find_root = async function (cwd = process.cwd()) {
+export async function find_root(cwd = process.cwd()) {
   if (await exists(path.join(cwd, "package.json"))) {
     return cwd
   }
@@ -15,7 +15,7 @@ module.exports.find_root = async function (cwd = process.cwd()) {
   throw new Error("Could not determine node project path")
 }
 
-module.exports.exists = async function (path) {
+export async function exists(path) {
   return fs
     .access(path, fs.constants.F_OK)
     .then(() => true)

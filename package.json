@@ -37,7 +37,7 @@
     "url": "https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit.git"
   },
   "bin": {
-    "bare-kit": "./bin/index.js"
+    "bare-kit": "./bin/index.mjs"
   },
   "exports": {
     ".": {

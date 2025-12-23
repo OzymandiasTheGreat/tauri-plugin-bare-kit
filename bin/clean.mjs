@@ -1,9 +1,9 @@
-const fs = require("fs/promises")
-const os = require("os")
-const path = require("path")
-const { exists } = require("./util")
+import fs from "fs/promises"
+import os from "os"
+import path from "path"
+import { exists } from "./util.mjs"
 
-module.exports = class BareKitCleaner {
+export default class BareKitCleaner {
   static async clean() {
     const temp = path.join(os.tmpdir(), "tauri-plugin-bare-kit")
 
