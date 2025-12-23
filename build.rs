@@ -80,11 +80,13 @@ fn build_for_android<P: AsRef<Path>>(src: &P) -> PathBuf {
         os => format!("{os}-x86_64"),
     };
 
-    if archs
-        .iter()
-        .all(|(_, abi)| dest.join(abi).join(libname).exists())
-    {
-        return dest;
+    for (_, abi) in &archs {
+        fs::remove_file(dest.join(abi).join(libname))
+            .or_else(|err| match err.kind() {
+                std::io::ErrorKind::NotFound => Ok(()),
+                _ => Err(err),
+            })
+            .unwrap();
     }
 
     for (arch, abi) in archs {
@@ -175,9 +177,12 @@ fn build_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
     let framework_head = framework_bin.join("Headers");
     let framework_res = framework_bin.join("Resources");
 
-    if framework.exists() {
-        return dest;
-    }
+    fs::remove_dir_all(&framework)
+        .or_else(|err| match err.kind() {
+            std::io::ErrorKind::NotFound => Ok(()),
+            _ => Err(err),
+        })
+        .unwrap();
 
     for arch in &archs {
         let target = format!("darwin-{arch}");
@@ -323,9 +328,12 @@ fn build_for_linux<P: AsRef<Path>>(src: &P) -> PathBuf {
     let scratch = temp.join("scratch").join(&target);
     let dest = temp.join("lib").join(&target);
 
-    if dest.join("libbare-kit.so").exists() {
-        return dest;
-    }
+    fs::remove_file(dest.join("libbare-kit.so"))
+        .or_else(|err| match err.kind() {
+            std::io::ErrorKind::NotFound => Ok(()),
+            _ => Err(err),
+        })
+        .unwrap();
 
     let mut args = vec![
         "--yes",
@@ -415,9 +423,18 @@ fn build_for_windows<P: AsRef<Path>>(src: &P) -> PathBuf {
     let bin = temp.join("bin").join(&target);
     let lib = temp.join("lib").join(&target);
 
-    if bin.join("bare-kit.dll").exists() && lib.join("bare-kit.lib").exists() {
-        return bin;
-    }
+    fs::remove_file(bin.join("bare-kit.dll"))
+        .or_else(|err| match err.kind() {
+            std::io::ErrorKind::NotFound => Ok(()),
+            _ => Err(err),
+        })
+        .unwrap();
+    fs::remove_file(lib.join("bare-kit.lib"))
+        .or_else(|err| match err.kind() {
+            std::io::ErrorKind::NotFound => Ok(()),
+            _ => Err(err),
+        })
+        .unwrap();
 
     let mut args = vec![
         "--yes",
