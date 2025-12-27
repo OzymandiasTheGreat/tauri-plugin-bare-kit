@@ -1,3 +1,7 @@
 {
-  "events": "bare-events"
+  "buffer": "bare-buffer",
+  "dgram": "bare-dgram",
+  "events": "bare-events",
+  "os": "bare-os",
+  "process": "bare-process"
 }

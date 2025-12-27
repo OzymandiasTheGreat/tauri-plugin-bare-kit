@@ -1,16 +1,16 @@
 import MDI from "@expo/vector-icons/MaterialCommunityIcons"
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native"
 import { Stack } from "expo-router"
-import { useCallback } from "react"
+import { useCallback, useEffect } from "react"
 import { Pressable } from "react-native"
 import "react-native-reanimated"
 
 import bench from "@/api/bench"
+import { setIPC } from "@/api/store"
 import bundle from "@/bundle"
 import Colors from "@/constants/colors"
 import { useIPC, useWorklet } from "@/hooks/useBareKit"
 import useColorScheme from "@/hooks/useColorScheme"
-import { useCreateStore } from "@/hooks/useStore"
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -27,9 +27,9 @@ export default function RootLayout() {
   const worklet = useWorklet({ source: bundle })
   const ipc = useIPC(worklet)
 
-  useCreateStore(worklet, ipc)
-
   const runBench = useCallback(() => bench(ipc!), [ipc])
+
+  useEffect(() => setIPC(ipc), [ipc])
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>

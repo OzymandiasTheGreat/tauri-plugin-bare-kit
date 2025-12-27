@@ -1,72 +1,162 @@
-import { signal, type Signal } from "@preact/signals-react"
+import { basename } from "@tauri-apps/api/path"
+import { type DeepSignal, deepSignal, peek } from "deepsignal/react"
+import z32 from "z32"
 
-import Deferred from "@/common/deferred"
-import type { IPC, Worklet } from "@/hooks/useBareKit"
+import type { IPC } from "@/common/bare-rpc"
+import { ID, File, Message as MessageEncoding, Method, SaveRequest } from "@/common/ipc"
+import { Bubbles } from "@/constants/colors"
 
-export class Store {
-  private static _instance: Store | null = null
-  private static _ready = new Deferred()
+export interface BeamError {
+  message: string
+  reason?: string
+}
 
-  private _worklet: Worklet
-  private _ipc: IPC
+export interface Message {
+  sender: string
+  recipient: string
+  isFile: boolean
+  isLocal: boolean
+  text: string
+  color: string
+}
 
-  private _messages: Signal<Record<string, Signal<string[]>>>
-  private _peers: Signal<string[]>
+export interface Store {
+  id: string | null
+  messages: Message[]
+  lastError: BeamError | null
 
-  constructor(worklet: Worklet, ipc: IPC) {
-    if (Store._instance) {
-      return Store._instance
-    }
+  clearError(): void
+  sendMessage(recipient: string, text: string): void
+  sendFile(recipient: string, path: string): void
+  saveFile(sender: string, filename: string, filepath: string): void
+}
 
-    this._worklet = worklet
-    this._ipc = ipc
+let ipc: IPC | null = null
 
-    this._messages = signal({})
-    this._peers = signal([])
+export const store: DeepSignal<Store> = deepSignal({
+  id: null,
+  lastError: null,
+  messages: [],
 
-    Store._instance = this
-    Store._ready.resolve()
-  }
+  clearError() {
+    store.lastError = null
+  },
 
-  static get ready(): Promise<void> {
-    return this._ready.promise
-  }
+  sendMessage(recipient, text) {
+    const req = ipc?.request(Method.BeamMessage)
+    req?.send(
+      {
+        other: z32.decode(recipient),
+        text,
+        color: 0,
+      } as any,
+      MessageEncoding as any,
+    )
+    req
+      ?.reply()
+      .then(() =>
+        store.messages.push({
+          sender: peek(store, "id")!,
+          recipient,
+          isFile: false,
+          isLocal: true,
+          text,
+          color: "",
+        }),
+      )
+      .catch((err) => {
+        console.error(err)
+        store.lastError = {
+          message: `Sending message to ${recipient} failed`,
+          reason: err.message,
+        }
+      })
+  },
 
-  static get instance(): Store {
-    if (!this._instance) {
-      throw new Error("Store hasn't been initialized yet")
-    }
+  sendFile(recipient, path) {
+    const req = ipc?.request(Method.BeamFile)
+    req?.send(
+      {
+        other: z32.decode(recipient),
+        path,
+        color: 0,
+      } as any,
+      File as any,
+    )
+    req
+      ?.reply()
+      .then(async () =>
+        store.messages.push({
+          sender: peek(store, "id")!,
+          recipient,
+          isFile: true,
+          isLocal: true,
+          text: await basename(path),
+          color: "",
+        }),
+      )
+      .catch((err) => {
+        console.error(err)
+        store.lastError = {
+          message: `Sending file to ${recipient} failed`,
+          reason: err.message,
+        }
+      })
+  },
 
-    return this._instance
-  }
+  saveFile(sender, filename, filepath) {
+    const req = ipc?.request(Method.BeamSave)
+    req?.send(
+      {
+        other: z32.decode(sender),
+        filename,
+        filepath,
+      } as any,
+      SaveRequest as any,
+    )
+    req?.reply()
+  },
+})
 
-  get messages(): Signal<Record<string, Signal<string[]>>> {
-    return this._messages
-  }
+export function setIPC(_ipc: IPC | null) {
+  ipc = _ipc
 
-  get peers(): Signal<string[]> {
-    return this._peers
-  }
+  ipc?.respond(
+    Method.BeamReady,
+    { requestEncoding: ID, responseEncoding: null },
+    (req, data) => {
+      const id = z32.encode(data)
+      store.id = id
+    },
+  )
 
-  addPeer(peer: string) {
-    if (!this._messages.peek()[peer]) {
-      this._messages.value = { ...this._messages.value, [peer]: signal([]) }
-    }
+  ipc?.respond(
+    Method.BeamMessage,
+    { requestEncoding: MessageEncoding, responseEncoding: null },
+    (req, data: MessageEncoding) => {
+      store.messages.push({
+        sender: z32.encode(data.other),
+        recipient: peek(store, "id")!,
+        isFile: false,
+        isLocal: false,
+        text: data.text,
+        color: Bubbles[data.color],
+      })
+    },
+  )
 
-    this._peers.value = [peer, ...this._peers.value.filter((p) => p !== peer)]
-  }
-
-  addMessage(peer: string, message: string) {
-    if (this._messages.value[peer]) {
-      this._messages.value[peer].value = [...this._messages.value[peer].value, message]
-    } else {
-      this._messages.value = { ...this._messages.value, [peer]: signal([message]) }
-    }
-
-    this._peers.value = [peer, ...this._peers.value.filter((p) => p !== peer)]
-  }
-
-  getMessages(peer: string): Signal<string[]> {
-    return this._messages.peek()[peer]
-  }
+  ipc?.respond(
+    Method.BeamFile,
+    { requestEncoding: File, responseEncoding: null },
+    async (req, data: File) => {
+      store.messages.push({
+        sender: z32.encode(data.other),
+        recipient: peek(store, "id")!,
+        isFile: true,
+        isLocal: false,
+        text: await basename(data.path),
+        color: Bubbles[data.color],
+      })
+    },
+  )
 }

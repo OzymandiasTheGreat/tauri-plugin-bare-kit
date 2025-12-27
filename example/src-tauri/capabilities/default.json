@@ -2,6 +2,14 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "enables the default permissions",
-  "windows": ["main"],
-  "permissions": ["core:default", "bare-kit:default"]
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "bare-kit:default",
+    "clipboard-manager:allow-read-text",
+    "clipboard-manager:allow-write-text",
+    "dialog:default"
+  ]
 }

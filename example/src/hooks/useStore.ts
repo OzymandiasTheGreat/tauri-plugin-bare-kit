@@ -1,27 +1,10 @@
-import { useEffect, useState } from "react"
 import { useSignals } from "@preact/signals-react/runtime"
+import type { DeepSignal } from "deepsignal/react"
 
-import type { IPC, Worklet } from "@/hooks/useBareKit"
-import { Store } from "@/api/store"
+import { store, type Store } from "@/api/store"
 
-export { useSignals } from "@preact/signals-react/runtime"
-
-export function useCreateStore(worklet: Worklet | null, ipc: IPC | null) {
-  useEffect(() => {
-    if (worklet && ipc) {
-      new Store(worklet, ipc)
-    }
-  }, [worklet, ipc])
-}
-
-export const useStore = (): Store | null => {
+export default function useStore(): DeepSignal<Store> {
   useSignals()
-
-  const [store, setStore] = useState<Store | null>(null)
-
-  useEffect(() => {
-    Store.ready.then(() => setStore(Store.instance))
-  }, [])
 
   return store
 }

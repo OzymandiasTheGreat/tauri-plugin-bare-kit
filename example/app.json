@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "bare-messenger",
-    "slug": "bare-messenger",
+    "name": "bare-beam",
+    "slug": "bare-beam",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "baremessenger",
+    "scheme": "barebeam",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {

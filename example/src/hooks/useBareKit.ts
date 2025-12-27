@@ -2,8 +2,7 @@ import RPC from "bare-rpc"
 import { useEffect, useMemo, useState } from "react"
 import { Worklet } from "tauri-plugin-bare-kit-api"
 
-// Adds missing types for CommandRouter
-import type {} from "@/common/bare-rpc"
+import type { IPC } from "@/common/bare-rpc"
 
 interface WorkletOptions {
   filename?: string
@@ -13,7 +12,7 @@ interface WorkletOptions {
   assets?: string | null
 }
 
-export type { Worklet }
+export type { Worklet, IPC }
 
 export function useWorklet(options: WorkletOptions = {}): Worklet | null {
   const { filename = "/app.bundle", source, args = [], memoryLimit, assets } = options
@@ -43,16 +42,15 @@ export function useWorklet(options: WorkletOptions = {}): Worklet | null {
   return worklet
 }
 
-export type IPC = { request: RPC["request"]; respond: RPC.CommandRouter["respond"] }
-
 export function useIPC(worklet: Worklet | null): IPC | null {
   const [rpc, setRPC] = useState<RPC | null>(null)
   const [router, setRouter] = useState<RPC.CommandRouter | null>(null)
-  const iface = useMemo(() => {
-    if (router && rpc) {
+  const ipc: IPC | null = useMemo(() => {
+    if (rpc && router) {
       return {
-        respond: router.respond.bind(router),
+        event: rpc.event.bind(rpc),
         request: rpc.request.bind(rpc),
+        respond: router.respond.bind(router),
       }
     } else {
       return null
@@ -61,17 +59,16 @@ export function useIPC(worklet: Worklet | null): IPC | null {
 
   useEffect(() => {
     if (worklet) {
-      const { IPC } = worklet
       const _router = new RPC.CommandRouter()
-      const _rpc = new RPC(IPC, _router as any)
+      const _rpc = new RPC(worklet.IPC, _router as any)
 
-      setRouter(_router)
       setRPC(_rpc)
+      setRouter(_router)
     } else {
-      setRouter(null)
       setRPC(null)
+      setRouter(null)
     }
   }, [worklet])
 
-  return iface
+  return ipc
 }
