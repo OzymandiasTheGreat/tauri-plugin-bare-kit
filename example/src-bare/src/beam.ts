@@ -134,7 +134,11 @@ export default class Beam extends ReadyResource {
       stream.destroy()
     }
 
-    await fsp.rm(this.tmp, { force: true, recursive: true })
+    this.cleanup()
+  }
+
+  cleanup() {
+    fs.rmSync(this.tmp, { force: true, recursive: true })
   }
 
   async onsendmessage(req: IPC.IncomingRequest, data: Message) {

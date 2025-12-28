@@ -21,6 +21,8 @@ const ipc = {
 }
 const beam = new Beam(ipc)
 
+Bare.on("exit", () => beam.cleanup())
+
 router.respond(Method.BenchEncrypt, { valueEncoding: c.raw }, bench)
 router.respond(Method.BenchDecrypt, { valueEncoding: c.raw }, bench)
 // Need to pass null as encoding to avoid errors for streaming requests/replies

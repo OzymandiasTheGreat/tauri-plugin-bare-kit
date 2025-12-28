@@ -2,7 +2,7 @@ use std::{env::consts, sync::Mutex};
 
 use tauri::{
     plugin::{Builder, TauriPlugin},
-    Manager, Runtime,
+    Manager, RunEvent, Runtime,
 };
 
 pub use models::*;
@@ -54,6 +54,10 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             let bare_kit = BareKit::new(app, api)?;
             app.manage(Mutex::new(bare_kit));
             Ok(())
+        })
+        .on_event(|app, event| match event {
+            RunEvent::ExitRequested { .. } => app.bare_kit().lock().unwrap().invalidate().unwrap(),
+            _ => (),
         })
         .build()
 }
