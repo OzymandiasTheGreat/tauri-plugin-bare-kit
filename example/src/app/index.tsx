@@ -1,4 +1,4 @@
-import { View } from "react-native"
+import { useWindowDimensions, View } from "react-native"
 
 import Composer from "@/components/composer"
 import Stream from "@/components/stream"
@@ -6,11 +6,13 @@ import createThemedStyleSheet from "@/hooks/useTheme"
 
 export default function HomeScreen() {
   const styles = useStyles()
+  const { height, width } = useWindowDimensions()
+  const landscape = height < width
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { flexDirection: landscape ? "row" : "column-reverse" }]}>
       <Composer />
-      <View style={styles.splitter} />
+      <View style={[styles.splitter, landscape ? { width: 3 } : { height: 3 }]} />
       <Stream />
     </View>
   )
@@ -19,10 +21,8 @@ export default function HomeScreen() {
 const useStyles = createThemedStyleSheet((theme) => ({
   container: {
     flex: 1,
-    flexDirection: "row",
   },
   splitter: {
     backgroundColor: theme.input,
-    width: 3,
   },
 }))

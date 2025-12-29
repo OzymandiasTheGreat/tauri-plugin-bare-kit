@@ -9,7 +9,8 @@
     "start:expo": "watchman watch-del .. && expo start --clear",
     "build": "npm run build:bare && npm run build:expo",
     "build:bare": "tsc -p src-bare",
-    "build:expo": "expo export --platform web"
+    "build:expo": "expo export --platform web",
+    "tauri": "tauri"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -46,6 +47,7 @@
     "@tauri-apps/cli": "^2.9.6",
     "@types/compact-encoding": "^2.15.0",
     "@types/react": "~19.1.0",
+    "patch-package": "^8.0.1",
     "react-test-renderer": "19.1.0",
     "typescript": "~5.9.2"
   }
