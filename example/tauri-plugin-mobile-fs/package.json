@@ -1,0 +1,16 @@
+{
+  "name": "tauri-plugin-mobile-fs-api",
+  "version": "0.1.0",
+  "exports": {
+    "types": "./api/index.d.ts",
+    "default": "./api/index.js"
+  },
+  "files": [
+    "api"
+  ],
+  "scripts": {},
+  "dependencies": {
+    "@tauri-apps/api": "^2.0.0"
+  },
+  "devDependencies": {}
+}

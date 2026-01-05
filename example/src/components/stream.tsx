@@ -2,6 +2,7 @@ import MDI from "@expo/vector-icons/MaterialCommunityIcons"
 import { save } from "@tauri-apps/plugin-dialog"
 import { useCallback } from "react"
 import { FlatList, ListRenderItem, Pressable, View, Text } from "react-native"
+import { getFileDescriptor } from "tauri-plugin-mobile-fs-api"
 
 import { type Message } from "@/api/store"
 import useStore from "@/hooks/useStore"
@@ -13,9 +14,11 @@ export default function Stream() {
 
   const saveFile = useCallback(
     (other: string, filename: string) =>
-      save({ defaultPath: filename }).then((filepath) => {
+      save({ defaultPath: filename }).then(async (filepath) => {
         if (filepath) {
-          store.saveFile(other, filename, filepath)
+          const fd = await getFileDescriptor(filepath, "w")
+
+          store.saveFile(other, filename, filepath, fd)
         }
       }),
     [],

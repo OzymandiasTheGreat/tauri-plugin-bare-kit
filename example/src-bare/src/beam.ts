@@ -20,24 +20,6 @@ enum RPCMethod {
   fileClose = "file-close",
 }
 
-type FileRequest = { name: string; size: number }
-const FileRequest: Encoder<FileRequest> = {
-  preencode(state, value) {
-    c.string.preencode(state, value.name)
-    c.uint32.preencode(state, value.size)
-  },
-  encode(state, value) {
-    c.string.encode(state, value.name)
-    c.uint32.encode(state, value.size)
-  },
-  decode(state) {
-    const name = c.string.decode(state)
-    const size = c.uint32.decode(state)
-
-    return { name, size }
-  },
-}
-
 type FileChunk = { name: string; data: Uint8Array }
 const FileChunk: Encoder<FileChunk> = {
   preencode(state, value) {
@@ -94,7 +76,7 @@ export default class Beam extends ReadyResource {
     )
     this.server.respond(
       RPCMethod.fileOpen,
-      { requestEncoding: FileRequest },
+      { requestEncoding: c.string },
       this.onrecvfileopen.bind(this),
     )
     this.server.respond(
@@ -156,22 +138,13 @@ export default class Beam extends ReadyResource {
   }
 
   async onsendfile(req: IPC.IncomingRequest, data: File) {
-    const stat = await fsp.stat(data.path)
-    const name = path.basename(data.path)
+    const name = data.name ?? path.basename(data.path)
 
-    await this.rpc.request(
-      data.other,
-      RPCMethod.fileOpen,
-      {
-        name,
-        size: stat.size,
-      },
-      {
-        requestEncoding: FileRequest,
-      },
-    )
+    await this.rpc.request(data.other, RPCMethod.fileOpen, name, {
+      requestEncoding: c.string,
+    })
 
-    for await (const chunk of fs.createReadStream(data.path)) {
+    for await (const chunk of fs.createReadStream(data.path, { fd: data.fd! })) {
       await this.rpc.request(
         data.other,
         RPCMethod.fileChunk,
@@ -188,10 +161,10 @@ export default class Beam extends ReadyResource {
     await this.rpc.request(data.other, RPCMethod.fileClose, name, { requestEncoding: c.string })
   }
 
-  async onrecvfileopen(file: FileRequest, rpc: any) {
+  async onrecvfileopen(filename: string, rpc: any) {
     const other = rpc.stream.remotePublicKey
-    const key = fileKey(other, file.name)
-    const filepath = path.join(this.tmp, z32.encode(other), file.name)
+    const key = fileKey(other, filename)
+    const filepath = path.join(this.tmp, z32.encode(other), filename)
     await fsp.mkdir(path.dirname(filepath), { recursive: true })
     const stream = fs.createWriteStream(filepath)
     this.incoming.set(key, stream)
@@ -222,7 +195,19 @@ export default class Beam extends ReadyResource {
   async onsavefile(req: IPC.IncomingRequest, data: SaveRequest) {
     const source = path.join(this.tmp, z32.encode(data.other), data.filename)
 
-    await fsp.copyFile(source, data.filepath)
+    if (data.fd) {
+      const input = fs.createReadStream(source)
+      const output = fs.createWriteStream(null, { fd: data.fd })
+      const promise = new Promise((resolve, reject) => {
+        input.on("error", reject)
+        input.on("finish", resolve)
+      })
+
+      input.pipe(output)
+      await promise
+    } else {
+      await fsp.copyFile(source, data.filepath)
+    }
   }
 }
 

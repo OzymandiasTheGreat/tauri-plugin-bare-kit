@@ -41,6 +41,7 @@
     "ready-resource": "^1.2.0",
     "sodium-native": "^5.0.10",
     "tauri-plugin-bare-kit-api": "file:../",
+    "tauri-plugin-mobile-fs-api": "file:tauri-plugin-mobile-fs",
     "z32": "^1.1.0"
   },
   "devDependencies": {

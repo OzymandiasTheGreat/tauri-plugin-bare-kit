@@ -27,8 +27,8 @@ export interface Store {
 
   clearError(): void
   sendMessage(recipient: string, text: string): void
-  sendFile(recipient: string, path: string): void
-  saveFile(sender: string, filename: string, filepath: string): void
+  sendFile(recipient: string, path: string, fd: number | null, name: string | null): void
+  saveFile(sender: string, filename: string, filepath: string, fd: number | null): void
 }
 
 let ipc: IPC | null = null
@@ -73,12 +73,14 @@ export const store: DeepSignal<Store> = deepSignal({
       })
   },
 
-  sendFile(recipient, path) {
+  sendFile(recipient, path, fd, name) {
     const req = ipc?.request(Method.BeamFile)
     req?.send(
       {
         other: z32.decode(recipient),
         path,
+        fd,
+        name,
         color: 0,
       } as any,
       File as any,
@@ -104,13 +106,14 @@ export const store: DeepSignal<Store> = deepSignal({
       })
   },
 
-  saveFile(sender, filename, filepath) {
+  saveFile(sender, filename, filepath, fd) {
     const req = ipc?.request(Method.BeamSave)
     req?.send(
       {
         other: z32.decode(sender),
         filename,
         filepath,
+        fd,
       } as any,
       SaveRequest as any,
     )

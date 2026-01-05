@@ -3,10 +3,10 @@ import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager"
 import { open } from "@tauri-apps/plugin-dialog"
 import { useCallback, useState } from "react"
 import { ActivityIndicator, Button, Pressable, Text, TextInput, View } from "react-native"
+import { getFileDescriptor, getFileName } from "tauri-plugin-mobile-fs-api"
 
 import useStore from "@/hooks/useStore"
 import createThemedStyleSheet from "@/hooks/useTheme"
-import { errors } from "bare-events"
 
 export default function Composer() {
   const styles = useStyles()
@@ -26,9 +26,12 @@ export default function Composer() {
     setMessage("")
   }, [recipient, message])
   const sendFile = useCallback(() => {
-    open({ directory: false, multiple: false }).then((path) => {
+    open({ directory: false, multiple: false }).then(async (path) => {
       if (path) {
-        store.sendFile(recipient, path)
+        const fd = await getFileDescriptor(path, "r")
+        const name = await getFileName(path)
+
+        store.sendFile(recipient, path, fd, name)
       }
     })
   }, [recipient])

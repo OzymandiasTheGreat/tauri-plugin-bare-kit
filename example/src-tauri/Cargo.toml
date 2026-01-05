@@ -25,3 +25,4 @@ tauri = { version = "2.9.5", features = [] }
 tauri-plugin-bare-kit = { path = "../../" }
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-dialog = "2"
+tauri-plugin-mobile-fs = { path = "../tauri-plugin-mobile-fs/" }

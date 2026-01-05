@@ -2437,6 +2437,48 @@
           "type": "string",
           "const": "dialog:deny-save",
           "markdownDescription": "Denies the save command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`\n- `allow-get-file-descriptor`\n- `allow-get-file-name`",
+          "type": "string",
+          "const": "mobile-fs:default",
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`\n- `allow-get-file-descriptor`\n- `allow-get-file-name`"
+        },
+        {
+          "description": "Enables the get_file_descriptor command without any pre-configured scope.",
+          "type": "string",
+          "const": "mobile-fs:allow-get-file-descriptor",
+          "markdownDescription": "Enables the get_file_descriptor command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_file_name command without any pre-configured scope.",
+          "type": "string",
+          "const": "mobile-fs:allow-get-file-name",
+          "markdownDescription": "Enables the get_file_name command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the ping command without any pre-configured scope.",
+          "type": "string",
+          "const": "mobile-fs:allow-ping",
+          "markdownDescription": "Enables the ping command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_file_descriptor command without any pre-configured scope.",
+          "type": "string",
+          "const": "mobile-fs:deny-get-file-descriptor",
+          "markdownDescription": "Denies the get_file_descriptor command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_file_name command without any pre-configured scope.",
+          "type": "string",
+          "const": "mobile-fs:deny-get-file-name",
+          "markdownDescription": "Denies the get_file_name command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the ping command without any pre-configured scope.",
+          "type": "string",
+          "const": "mobile-fs:deny-ping",
+          "markdownDescription": "Denies the ping command without any pre-configured scope."
         }
       ]
     },
