@@ -5,6 +5,7 @@ import fsp from "bare-fs/promises"
 import os from "bare-os"
 import path from "bare-path"
 import type { Writable } from "bare-stream"
+import URL from "bare-url"
 import c, { Encoder } from "compact-encoding"
 import ReadyResource from "ready-resource"
 import sodium from "sodium-native"
@@ -138,13 +139,21 @@ export default class Beam extends ReadyResource {
   }
 
   async onsendfile(req: IPC.IncomingRequest, data: File) {
-    const name = data.name ?? path.basename(data.path)
+    let filepath = data.path
+
+    try {
+      filepath = URL.fileURLToPath(filepath)
+    } catch {
+      // Not an URL, ignore
+    }
+
+    const name = data.name ?? path.basename(filepath)
 
     await this.rpc.request(data.other, RPCMethod.fileOpen, name, {
       requestEncoding: c.string,
     })
 
-    for await (const chunk of fs.createReadStream(data.path, { fd: data.fd! })) {
+    for await (const chunk of fs.createReadStream(filepath, { fd: data.fd! })) {
       await this.rpc.request(
         data.other,
         RPCMethod.fileChunk,
@@ -206,7 +215,15 @@ export default class Beam extends ReadyResource {
       input.pipe(output)
       await promise
     } else {
-      await fsp.copyFile(source, data.filepath)
+      let filepath = data.filepath
+
+      try {
+        filepath = URL.fileURLToPath(filepath)
+      } catch {
+        // Not an URL, ignore
+      }
+
+      await fsp.copyFile(source, filepath)
     }
   }
 }

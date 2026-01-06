@@ -31,18 +31,28 @@ impl<R: Runtime> MobileFs<R> {
             .map_err(Into::into)
     }
 
+    #[allow(unused_variables)]
     pub fn get_file_descriptor(
         &self,
         payload: GetFileDescriptorRequest,
     ) -> crate::Result<GetFileDescriptorResponse> {
-        self.0
+        #[cfg(target_os = "android")]
+        return self
+            .0
             .run_mobile_plugin("getFileDescriptor", payload)
-            .map_err(Into::into)
+            .map_err(Into::into);
+        #[cfg(target_os = "ios")]
+        return Ok(GetFileDescriptorResponse { fd: None });
     }
 
+    #[allow(unused_variables)]
     pub fn get_file_name(&self, payload: GetFileNameRequest) -> crate::Result<GetFileNameResponse> {
-        self.0
+        #[cfg(target_os = "android")]
+        return self
+            .0
             .run_mobile_plugin("getFileName", payload)
-            .map_err(Into::into)
+            .map_err(Into::into);
+        #[cfg(target_os = "ios")]
+        return Ok(GetFileNameResponse { filename: None });
     }
 }

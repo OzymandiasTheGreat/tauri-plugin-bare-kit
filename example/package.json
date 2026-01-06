@@ -26,6 +26,7 @@
     "bare-os": "^3.6.2",
     "bare-path": "^3.0.0",
     "bare-rpc": "^1.0.0",
+    "bare-url": "^2.3.2",
     "compact-encoding": "^2.18.0",
     "deepsignal": "^1.6.0",
     "expo": "~54.0.27",

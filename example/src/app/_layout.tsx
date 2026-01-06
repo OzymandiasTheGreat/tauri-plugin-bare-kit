@@ -37,6 +37,7 @@ export default function RootLayout() {
         <Stack.Screen
           name="index"
           options={{
+            title: "",
             headerRight: () => (
               <Pressable onPress={runBench}>
                 {({ pressed }) => (
