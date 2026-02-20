@@ -140,7 +140,7 @@ export default class BareKitLinker {
       .readdir(dest)
       .then((frameworks) => frameworks.filter((f) => path.extname(f) === ".xcframework"))
     const filtered = dependencies.filter(
-      (d) => !frameworks.some((f) => d.framework?.includes(f.slice(0, f.indexOf(".")))),
+      (d) => !_frameworks.some((f) => d.framework?.includes(f.slice(0, f.indexOf(".")))),
     )
 
     for (const framework of _frameworks) {
