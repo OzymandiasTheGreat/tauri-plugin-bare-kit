@@ -9,7 +9,7 @@ exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules"]
 links = "tauri-plugin-bare-kit"
 
 [dependencies]
-tauri = { version = "2.9.3" }
+tauri = { version = "2.10.2" }
 serde = "1.0"
 thiserror = "2"
 tokio = "1.48.0"
@@ -21,7 +21,7 @@ base64 = "0.22.1"
 
 [build-dependencies]
 bindgen = "0.72.1"
-tauri-plugin = { version = "2.5.1", features = ["build"] }
+tauri-plugin = { version = "2.5.3", features = ["build"] }
 
 [features]
 default = ["runtime"]

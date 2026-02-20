@@ -9,9 +9,9 @@ exclude = ["/api", "/node_modules"]
 links = "tauri-plugin-mobile-fs"
 
 [dependencies]
-tauri = { version = "2.9.5" }
+tauri = { version = "2.10.2" }
 serde = "1.0"
 thiserror = "2"
 
 [build-dependencies]
-tauri-plugin = { version = "2.5.2", features = ["build"] }
+tauri-plugin = { version = "2.5.3", features = ["build"] }

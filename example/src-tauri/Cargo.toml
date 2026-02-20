@@ -15,13 +15,13 @@ name = "app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.5.3", features = [] }
+tauri-build = { version = "2.5.5", features = [] }
 tauri-plugin-bare-kit = { path = "../../", default-features = false, features = ["build"] }
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "2.9.5", features = [] }
+tauri = { version = "2.10.2", features = [] }
 tauri-plugin-bare-kit = { path = "../../" }
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-dialog = "2"

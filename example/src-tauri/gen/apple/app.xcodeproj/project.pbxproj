@@ -7,27 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0B4FC8C58D0A867A125C0CCB /* bare-pipe.4.1.0.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF66C8B77B03AC38B1D1BCC2 /* bare-pipe.4.1.0.xcframework */; };
 		11D530FCF6B97156ABFB4941 /* BareKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DC44AB29505AF03AFF8CDEB /* BareKit.xcframework */; };
 		2427298F7133ED0271140764 /* sodium-native.5.0.10.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 015374C5445CCBABAD4EC23D /* sodium-native.5.0.10.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		299814393FFBF154FAD94CA8 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3673D372C5ABDD1AD6E7067 /* QuartzCore.framework */; };
 		2AED04EF021B2F6ADE4B731F /* bare-module-lexer.1.4.7.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F8B92ADB22AF988CB60FCE34 /* bare-module-lexer.1.4.7.xcframework */; };
+		2C4CAFF19D21D2E2195F2930 /* bare-fs.4.5.3.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C0D54F30A7523D4F5A99AD81 /* bare-fs.4.5.3.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3036F7131E55779ABF15BD58 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 02B7F8347F94B067E6B27396 /* LaunchScreen.storyboard */; };
 		307FFE740A7BBA445B42D2A9 /* bare-os.3.6.2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAAF37E16FF082C0A3563198 /* bare-os.3.6.2.xcframework */; };
 		31585529C029A01BE249A285 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E81BD6B453D87B7F7B1597B /* CoreGraphics.framework */; };
 		316F1E7ABF7D14168DB89EF2 /* bare-os.3.6.2.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FAAF37E16FF082C0A3563198 /* bare-os.3.6.2.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		324A1E9A4258E7911D4DAC39 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9FACFFCB6E3743955F72464C /* Security.framework */; };
 		339D2DA361FE8E0E303B2C6E /* bare-subprocess.5.2.2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7899B9EAA68AA83A99D520F3 /* bare-subprocess.5.2.2.xcframework */; };
-		34D3305A25786E0BACF98198 /* bare-buffer.3.4.2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7195238BB23922BC1DD327A3 /* bare-buffer.3.4.2.xcframework */; };
 		36C1893A7382FCD5A6A74845 /* libapp.a in Resources */ = {isa = PBXBuildFile; fileRef = CF674524E34966183631754E /* libapp.a */; };
 		3BB9010F4C2082369047EE6A /* bare-module-lexer.1.4.7.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F8B92ADB22AF988CB60FCE34 /* bare-module-lexer.1.4.7.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		40F063B1D1FCFB695EB61856 /* bare-fs.4.5.2.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = BF98879CA8E07B3DC0EFBD45 /* bare-fs.4.5.2.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		50849149EB41D7006C7A6107 /* sodium-native.5.0.10.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 015374C5445CCBABAD4EC23D /* sodium-native.5.0.10.xcframework */; };
 		53CDD0ACFBE8BDF1550B2E53 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 682535EEFE1DA20BE07B123C /* main.mm */; };
 		591034A8ABA7C6AB8774807D /* udx-native.1.19.2.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 59D8839073EE3921F77CF2B7 /* udx-native.1.19.2.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5C516481BCA83A182C2BCC94 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 3842AE2A64FB9933D0400EA4 /* assets */; };
+		5CFAD465E0994A37D15C9A2E /* bare-fs.4.5.4.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 905DD866DC1E5673CEAC2387 /* bare-fs.4.5.4.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5F2F35D13B51546316C91293 /* bare-signals.4.2.0.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = FCB613B8598C5B398C4875DB /* bare-signals.4.2.0.xcframework */; };
 		618672DC8A5E0605441C9935 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E2B15F176E4B041AE33EEEA /* UIKit.framework */; };
+		7705583FCD49D96C008A2491 /* bare-pipe.4.1.3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6CA5C42696788847040D5609 /* bare-pipe.4.1.3.xcframework */; };
 		8103EAF2FFAD0288D3CEF041 /* bare-hrtime.2.1.1.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 10D8FC97E9BC0E728BDFEC7F /* bare-hrtime.2.1.1.xcframework */; };
 		836D84C5F07860664DAF79C8 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8F57162F5CC7AEDD55F173D /* WebKit.framework */; };
 		86FC401982EDDC907DB5F643 /* udx-native.1.19.2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 59D8839073EE3921F77CF2B7 /* udx-native.1.19.2.xcframework */; };
@@ -37,14 +37,16 @@
 		96440DC24586DEE0F71ACCF1 /* bare-hrtime.2.1.1.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 10D8FC97E9BC0E728BDFEC7F /* bare-hrtime.2.1.1.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9C07F310CB9D77AFD1D88DEB /* bare-subprocess.5.2.2.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7899B9EAA68AA83A99D520F3 /* bare-subprocess.5.2.2.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9D59FB167BB4E699DA17D1E9 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04B56F58E2E44DDE1D67E7B7 /* MetalKit.framework */; };
+		A2C622703ADD8FFF52C118CE /* bare-buffer.3.4.3.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = BF919BFCFBD4259C1741A049 /* bare-buffer.3.4.3.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C0E35584130DA85602691323 /* bare-fs.4.5.3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0D54F30A7523D4F5A99AD81 /* bare-fs.4.5.3.xcframework */; };
+		C352E9EE0EA49DEFAC810095 /* bare-buffer.3.4.3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF919BFCFBD4259C1741A049 /* bare-buffer.3.4.3.xcframework */; };
 		C6BD59C055C986EA4A77FDA2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AF1DE57E7D9CF13BB2E0E038 /* Assets.xcassets */; };
 		C869023DDFE275D42F3FBF29 /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 39EEC6A55698228E08917A52 /* libapp.a */; };
-		DB411DC5FA2A4ED1CF1589A2 /* bare-fs.4.5.2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF98879CA8E07B3DC0EFBD45 /* bare-fs.4.5.2.xcframework */; };
 		DF2732590B18C658265BDDD0 /* bare-url.2.3.2.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3D19FE8716C105F9F833968C /* bare-url.2.3.2.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		DF4D658D32125CA1C3F56FF0 /* bare-fs.4.5.4.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 905DD866DC1E5673CEAC2387 /* bare-fs.4.5.4.xcframework */; };
+		E4E9F46F52DCE141BD8AD1A6 /* bare-pipe.4.1.3.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6CA5C42696788847040D5609 /* bare-pipe.4.1.3.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E68F6CFDAED6503ABB4044A5 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1209BFDECB28E00189B168 /* Metal.framework */; };
 		EC8BFB27A1AE8A6F3879283F /* bare-tty.5.0.3.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = EEF5D5E1BC5803698B4DB348 /* bare-tty.5.0.3.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F2BA8CF1220AD27217F422D8 /* bare-pipe.4.1.0.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = BF66C8B77B03AC38B1D1BCC2 /* bare-pipe.4.1.0.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F485DF0602A5FCAC4703BC5D /* bare-buffer.3.4.2.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7195238BB23922BC1DD327A3 /* bare-buffer.3.4.2.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		FD597BF1477C2A213BAA5B11 /* bare-tty.5.0.3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = EEF5D5E1BC5803698B4DB348 /* bare-tty.5.0.3.xcframework */; };
 /* End PBXBuildFile section */
 
@@ -56,12 +58,13 @@
 			dstSubfolderSpec = 10;
 			files = (
 				8D353977E8CE7A7F167F8EE5 /* BareKit.xcframework in Embed Frameworks */,
-				F485DF0602A5FCAC4703BC5D /* bare-buffer.3.4.2.xcframework in Embed Frameworks */,
-				40F063B1D1FCFB695EB61856 /* bare-fs.4.5.2.xcframework in Embed Frameworks */,
+				A2C622703ADD8FFF52C118CE /* bare-buffer.3.4.3.xcframework in Embed Frameworks */,
+				2C4CAFF19D21D2E2195F2930 /* bare-fs.4.5.3.xcframework in Embed Frameworks */,
+				5CFAD465E0994A37D15C9A2E /* bare-fs.4.5.4.xcframework in Embed Frameworks */,
 				96440DC24586DEE0F71ACCF1 /* bare-hrtime.2.1.1.xcframework in Embed Frameworks */,
 				3BB9010F4C2082369047EE6A /* bare-module-lexer.1.4.7.xcframework in Embed Frameworks */,
 				316F1E7ABF7D14168DB89EF2 /* bare-os.3.6.2.xcframework in Embed Frameworks */,
-				F2BA8CF1220AD27217F422D8 /* bare-pipe.4.1.0.xcframework in Embed Frameworks */,
+				E4E9F46F52DCE141BD8AD1A6 /* bare-pipe.4.1.3.xcframework in Embed Frameworks */,
 				870F9147B31751DE08C1AC14 /* bare-signals.4.2.0.xcframework in Embed Frameworks */,
 				9C07F310CB9D77AFD1D88DEB /* bare-subprocess.5.2.2.xcframework in Embed Frameworks */,
 				EC8BFB27A1AE8A6F3879283F /* bare-tty.5.0.3.xcframework in Embed Frameworks */,
@@ -90,14 +93,15 @@
 		3D19FE8716C105F9F833968C /* bare-url.2.3.2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "bare-url.2.3.2.xcframework"; path = "$(PROJECT_DIR)/Frameworks/bare-url.2.3.2.xcframework"; sourceTree = "<group>"; };
 		59D8839073EE3921F77CF2B7 /* udx-native.1.19.2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "udx-native.1.19.2.xcframework"; path = "$(PROJECT_DIR)/Frameworks/udx-native.1.19.2.xcframework"; sourceTree = "<group>"; };
 		682535EEFE1DA20BE07B123C /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
-		7195238BB23922BC1DD327A3 /* bare-buffer.3.4.2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "bare-buffer.3.4.2.xcframework"; path = "$(PROJECT_DIR)/Frameworks/bare-buffer.3.4.2.xcframework"; sourceTree = "<group>"; };
+		6CA5C42696788847040D5609 /* bare-pipe.4.1.3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "bare-pipe.4.1.3.xcframework"; path = "$(PROJECT_DIR)/Frameworks/bare-pipe.4.1.3.xcframework"; sourceTree = "<group>"; };
 		7899B9EAA68AA83A99D520F3 /* bare-subprocess.5.2.2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "bare-subprocess.5.2.2.xcframework"; path = "$(PROJECT_DIR)/Frameworks/bare-subprocess.5.2.2.xcframework"; sourceTree = "<group>"; };
 		7DC44AB29505AF03AFF8CDEB /* BareKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = BareKit.xcframework; path = "$(PROJECT_DIR)/Frameworks/BareKit.xcframework"; sourceTree = "<group>"; };
 		81E326B61ED92E1D1EECF952 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		905DD866DC1E5673CEAC2387 /* bare-fs.4.5.4.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "bare-fs.4.5.4.xcframework"; path = "$(PROJECT_DIR)/Frameworks/bare-fs.4.5.4.xcframework"; sourceTree = "<group>"; };
 		9FACFFCB6E3743955F72464C /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		AF1DE57E7D9CF13BB2E0E038 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		BF66C8B77B03AC38B1D1BCC2 /* bare-pipe.4.1.0.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "bare-pipe.4.1.0.xcframework"; path = "$(PROJECT_DIR)/Frameworks/bare-pipe.4.1.0.xcframework"; sourceTree = "<group>"; };
-		BF98879CA8E07B3DC0EFBD45 /* bare-fs.4.5.2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "bare-fs.4.5.2.xcframework"; path = "$(PROJECT_DIR)/Frameworks/bare-fs.4.5.2.xcframework"; sourceTree = "<group>"; };
+		BF919BFCFBD4259C1741A049 /* bare-buffer.3.4.3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "bare-buffer.3.4.3.xcframework"; path = "$(PROJECT_DIR)/Frameworks/bare-buffer.3.4.3.xcframework"; sourceTree = "<group>"; };
+		C0D54F30A7523D4F5A99AD81 /* bare-fs.4.5.3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "bare-fs.4.5.3.xcframework"; path = "$(PROJECT_DIR)/Frameworks/bare-fs.4.5.3.xcframework"; sourceTree = "<group>"; };
 		CE1209BFDECB28E00189B168 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		CF674524E34966183631754E /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
 		D8F57162F5CC7AEDD55F173D /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
@@ -123,12 +127,13 @@
 				618672DC8A5E0605441C9935 /* UIKit.framework in Frameworks */,
 				836D84C5F07860664DAF79C8 /* WebKit.framework in Frameworks */,
 				11D530FCF6B97156ABFB4941 /* BareKit.xcframework in Frameworks */,
-				34D3305A25786E0BACF98198 /* bare-buffer.3.4.2.xcframework in Frameworks */,
-				DB411DC5FA2A4ED1CF1589A2 /* bare-fs.4.5.2.xcframework in Frameworks */,
+				C352E9EE0EA49DEFAC810095 /* bare-buffer.3.4.3.xcframework in Frameworks */,
+				C0E35584130DA85602691323 /* bare-fs.4.5.3.xcframework in Frameworks */,
+				DF4D658D32125CA1C3F56FF0 /* bare-fs.4.5.4.xcframework in Frameworks */,
 				8103EAF2FFAD0288D3CEF041 /* bare-hrtime.2.1.1.xcframework in Frameworks */,
 				2AED04EF021B2F6ADE4B731F /* bare-module-lexer.1.4.7.xcframework in Frameworks */,
 				307FFE740A7BBA445B42D2A9 /* bare-os.3.6.2.xcframework in Frameworks */,
-				0B4FC8C58D0A867A125C0CCB /* bare-pipe.4.1.0.xcframework in Frameworks */,
+				7705583FCD49D96C008A2491 /* bare-pipe.4.1.3.xcframework in Frameworks */,
 				5F2F35D13B51546316C91293 /* bare-signals.4.2.0.xcframework in Frameworks */,
 				339D2DA361FE8E0E303B2C6E /* bare-subprocess.5.2.2.xcframework in Frameworks */,
 				FD597BF1477C2A213BAA5B11 /* bare-tty.5.0.3.xcframework in Frameworks */,
@@ -144,12 +149,13 @@
 		1BBF8C620E54F8C028CA130C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				7195238BB23922BC1DD327A3 /* bare-buffer.3.4.2.xcframework */,
-				BF98879CA8E07B3DC0EFBD45 /* bare-fs.4.5.2.xcframework */,
+				BF919BFCFBD4259C1741A049 /* bare-buffer.3.4.3.xcframework */,
+				C0D54F30A7523D4F5A99AD81 /* bare-fs.4.5.3.xcframework */,
+				905DD866DC1E5673CEAC2387 /* bare-fs.4.5.4.xcframework */,
 				10D8FC97E9BC0E728BDFEC7F /* bare-hrtime.2.1.1.xcframework */,
 				F8B92ADB22AF988CB60FCE34 /* bare-module-lexer.1.4.7.xcframework */,
 				FAAF37E16FF082C0A3563198 /* bare-os.3.6.2.xcframework */,
-				BF66C8B77B03AC38B1D1BCC2 /* bare-pipe.4.1.0.xcframework */,
+				6CA5C42696788847040D5609 /* bare-pipe.4.1.3.xcframework */,
 				FCB613B8598C5B398C4875DB /* bare-signals.4.2.0.xcframework */,
 				7899B9EAA68AA83A99D520F3 /* bare-subprocess.5.2.2.xcframework */,
 				EEF5D5E1BC5803698B4DB348 /* bare-tty.5.0.3.xcframework */,
