@@ -96,18 +96,20 @@ targets:
       - sdk: UIKit.framework
       - sdk: WebKit.framework
       - framework: $(PROJECT_DIR)/Frameworks/BareKit.xcframework
-      - framework: $(PROJECT_DIR)/Frameworks/bare-buffer.3.4.3.xcframework
-      - framework: $(PROJECT_DIR)/Frameworks/bare-fs.4.5.3.xcframework
-      - framework: $(PROJECT_DIR)/Frameworks/bare-fs.4.5.4.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-abort.2.0.13.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-buffer.3.6.0.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-fs.4.5.5.xcframework
       - framework: $(PROJECT_DIR)/Frameworks/bare-hrtime.2.1.1.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-inspect.3.1.4.xcframework
       - framework: $(PROJECT_DIR)/Frameworks/bare-module-lexer.1.4.7.xcframework
-      - framework: $(PROJECT_DIR)/Frameworks/bare-os.3.6.2.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-os.3.7.0.xcframework
       - framework: $(PROJECT_DIR)/Frameworks/bare-pipe.4.1.3.xcframework
       - framework: $(PROJECT_DIR)/Frameworks/bare-signals.4.2.0.xcframework
-      - framework: $(PROJECT_DIR)/Frameworks/bare-subprocess.5.2.2.xcframework
-      - framework: $(PROJECT_DIR)/Frameworks/bare-tty.5.0.3.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-subprocess.5.2.3.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-tty.5.1.0.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/bare-type.1.1.0.xcframework
       - framework: $(PROJECT_DIR)/Frameworks/bare-url.2.3.2.xcframework
-      - framework: $(PROJECT_DIR)/Frameworks/sodium-native.5.0.10.xcframework
+      - framework: $(PROJECT_DIR)/Frameworks/sodium-native.5.1.0.xcframework
       - framework: $(PROJECT_DIR)/Frameworks/udx-native.1.19.2.xcframework
     preBuildScripts:
       - script: npm run -- tauri ios xcode-script -v --platform

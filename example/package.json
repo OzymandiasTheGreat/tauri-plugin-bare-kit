@@ -21,9 +21,9 @@
     "@tauri-apps/plugin-clipboard-manager": "^2.3.2",
     "@tauri-apps/plugin-dialog": "^2.4.2",
     "b4a": "^1.7.3",
-    "bare-buffer": "^3.4.2",
-    "bare-fs": "4.5.3",
-    "bare-os": "3.6.2",
+    "bare-buffer": "^3.4.4",
+    "bare-fs": "4.5.5",
+    "bare-os": "3.7.0",
     "bare-path": "^3.0.0",
     "bare-rpc": "^1.0.0",
     "bare-url": "2.3.2",
@@ -54,16 +54,16 @@
     "typescript": "~5.9.2"
   },
   "overrides": {
-    "bare-crypto": "1.13.0",
-    "bare-fs": "4.5.3",
+    "bare-crypto": "1.13.3",
+    "bare-fs": "4.5.5",
     "bare-hrtime": "2.1.1",
     "bare-inspect": "3.1.4",
     "bare-ipc": "1.1.1",
-    "bare-logger": "2.0.0",
+    "bare-logger": "2.0.2",
     "bare-module": "6.1.3",
     "bare-module-lexer": "1.4.7",
     "bare-pipe": "4.1.3",
-    "bare-os": "3.6.2",
+    "bare-os": "3.7.0",
     "bare-type": "1.1.0",
     "bare-url": "2.3.2"
   }

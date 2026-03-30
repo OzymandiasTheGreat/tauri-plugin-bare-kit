@@ -73,5 +73,19 @@
     "paparam": "^1.9.1",
     "yaml": "^2.8.1"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "overrides": {
+    "bare-crypto": "1.13.3",
+    "bare-fs": "4.5.5",
+    "bare-hrtime": "2.1.1",
+    "bare-inspect": "3.1.4",
+    "bare-ipc": "1.1.1",
+    "bare-logger": "2.0.2",
+    "bare-module": "6.1.3",
+    "bare-module-lexer": "1.4.7",
+    "bare-pipe": "4.1.3",
+    "bare-os": "3.7.0",
+    "bare-type": "1.1.0",
+    "bare-url": "2.3.2"
+  }
 }
