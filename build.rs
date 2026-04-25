@@ -5,7 +5,7 @@ use std::{
     process::Command,
 };
 
-const MAKE: &str = "bare-make@1.6.3";
+const MAKE: &str = "bare-make@latest";
 #[cfg(unix)]
 const RUNNER: &str = "npx";
 #[cfg(windows)]

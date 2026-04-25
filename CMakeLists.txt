@@ -10,7 +10,7 @@ project(tauri_plugin_bare_kit LANGUAGES C CXX VERSION 0.1.0)
 
 set(PARENT_PROJECT_PATH "" CACHE PATH "Path to root tauri project (folder containing src-tauri/)")
 
-fetch_package("github:holepunchto/bare-kit@2.0.0")
+fetch_package("github:holepunchto/bare-kit@2.0.2")
 
 set_target_properties(
   bare_kit
