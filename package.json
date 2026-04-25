@@ -60,6 +60,8 @@
     "README.md"
   ],
   "scripts": {
+    "bump-version": "./scripts/bump-version.mjs",
+    "preinstall": "./scripts/preinstall.mjs",
     "update-bare-kit": "./scripts/update-bare-kit.mjs"
   },
   "dependencies": {
@@ -74,7 +76,10 @@
     "paparam": "^1.9.1",
     "yaml": "^2.8.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@ltd/j-toml": "^1.38.0",
+    "semver": "^7.7.4"
+  },
   "overrides": {
     "bare-addon-resolve": "1.10.0",
     "bare-ansi-escapes": "2.2.3",

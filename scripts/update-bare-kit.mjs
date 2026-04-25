@@ -24,7 +24,7 @@ for (const dep of Object.keys(pkg.dependencies)) {
 
 await fs.writeFile("package.json", JSON.stringify(pkg, null, 2))
 
-const meta = { version: bare_kit_version }
+const meta = { version: coerce(bare_kit_version) }
 await fs.writeFile(
   path.join(import.meta.dirname, "bare-kit.json"),
   JSON.stringify(meta, null, 2),
