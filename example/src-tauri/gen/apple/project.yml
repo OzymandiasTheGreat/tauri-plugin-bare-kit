@@ -2,8 +2,9 @@ name: app
 options:
   bundleIdPrefix: sh.quince.bare-beam
   deploymentTarget:
-    iOS: 14.0
-fileGroups: [../../src]
+    iOS: 14
+fileGroups:
+  - ../../src
 configs:
   debug: debug
   release: release
@@ -22,7 +23,8 @@ targetTemplates:
         RUST_BACKTRACE: full
         RUST_LOG: info
     settings:
-      groups: [app]
+      groups:
+        - app
 targets:
   app_iOS:
     type: application
@@ -41,7 +43,9 @@ targets:
       properties:
         LSRequiresIPhoneOS: true
         UILaunchStoryboardName: LaunchScreen
-        UIRequiredDeviceCapabilities: [arm64, metal]
+        UIRequiredDeviceCapabilities:
+          - arm64
+          - metal
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
@@ -52,7 +56,7 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         CFBundleShortVersionString: 0.1.0
-        CFBundleVersion: "0.1.0"
+        CFBundleVersion: 0.1.0
     entitlements:
       path: app_iOS/app_iOS.entitlements
     scheme:
@@ -62,13 +66,23 @@ targets:
     settings:
       base:
         ENABLE_BITCODE: false
-        ARCHS: [arm64]
-        VALID_ARCHS: arm64 
-        LIBRARY_SEARCH_PATHS[arch=x86_64]: $(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)
-        LIBRARY_SEARCH_PATHS[arch=arm64]: $(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)
+        ARCHS:
+          - arm64
+        VALID_ARCHS: arm64
+        LIBRARY_SEARCH_PATHS[arch=x86_64]: $(inherited)
+          $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION)
+          $(SDKROOT)/usr/lib/swift
+          $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)
+          $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)
+        LIBRARY_SEARCH_PATHS[arch=arm64]: $(inherited)
+          $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION)
+          $(SDKROOT)/usr/lib/swift
+          $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)
+          $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)
         ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: true
         EXCLUDED_ARCHS[sdk=iphoneos*]: x86_64
-      groups: [app]
+      groups:
+        - app
     dependencies:
       - framework: libapp.a
         embed: false
@@ -79,8 +93,14 @@ targets:
       - sdk: Security.framework
       - sdk: UIKit.framework
       - sdk: WebKit.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/BareKit.framework
     preBuildScripts:
-      - script: npm run -- tauri ios xcode-script -v --platform ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?} --framework-search-paths "${FRAMEWORK_SEARCH_PATHS:?}" --header-search-paths "${HEADER_SEARCH_PATHS:?}" --gcc-preprocessor-definitions "${GCC_PREPROCESSOR_DEFINITIONS:-}" --configuration ${CONFIGURATION:?} ${FORCE_COLOR} ${ARCHS:?}
+      - script: npm run -- tauri ios xcode-script -v --platform
+          ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?}
+          --framework-search-paths "${FRAMEWORK_SEARCH_PATHS:?}"
+          --header-search-paths "${HEADER_SEARCH_PATHS:?}"
+          --gcc-preprocessor-definitions "${GCC_PREPROCESSOR_DEFINITIONS:-}"
+          --configuration ${CONFIGURATION:?} ${FORCE_COLOR} ${ARCHS:?}
         name: Build Rust Code
         basedOnDependencyAnalysis: false
         outputFiles:

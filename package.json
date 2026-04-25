@@ -73,12 +73,12 @@
     "cmake-bare-bundle": "^3.0.0",
     "cmake-fetch": "^1.4.7",
     "libnpmexec": "^10.1.10",
-    "paparam": "^1.9.1",
-    "yaml": "^2.8.1"
+    "paparam": "^1.9.1"
   },
   "devDependencies": {
     "@ltd/j-toml": "^1.38.0",
-    "semver": "^7.7.4"
+    "semver": "^7.7.4",
+    "yaml": "^2.8.1"
   },
   "overrides": {
     "bare-addon-resolve": "1.10.0",

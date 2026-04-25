@@ -18,6 +18,10 @@ set_target_properties(
   EXCLUDE_FROM_ALL FALSE
 )
 
+if(IOS)
+  list(APPEND CMAKE_FIND_ROOT_PATH ${PARENT_PROJECT_PATH})
+endif()
+
 find_file(
   BARE_ENTRY_PATH
   "app.js"
@@ -54,5 +58,5 @@ install(
   TARGETS
     bare_kit
   FRAMEWORK DESTINATION
-    Frameworks
+    "."
 )

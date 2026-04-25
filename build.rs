@@ -12,7 +12,7 @@ const RUNNER: &str = "npx";
 const RUNNER: &str = "npx.cmd";
 
 #[derive(Debug, Deserialize)]
-struct CONFIG {
+struct META {
     root: String,
 }
 
@@ -35,11 +35,6 @@ fn main() {
     let src = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let platform = env::var("CARGO_CFG_TARGET_OS").unwrap();
-    let platfrom = match &*platform {
-        "macos" => "darwin",
-        "windows" => "win32",
-        os => os,
-    };
 
     let config_str = String::from_utf8(
         Command::new(env::var("CARGO").unwrap())
@@ -50,27 +45,28 @@ fn main() {
             .stdout,
     )
     .unwrap();
-    let config_json: CONFIG = serde_json::from_str(&config_str).unwrap();
-    let project_root = PathBuf::from(config_json.root);
+    let meta_json: META = serde_json::from_str(&config_str).unwrap();
+    let project_root = PathBuf::from(meta_json.root);
     let project = &*format!(
         "PARENT_PROJECT_PATH={}",
         project_root.ancestors().nth(2).unwrap().display(),
     );
 
-    println!(
-        "cargo::metadata=RESOURCE_DIR={}",
-        out.join("bare-kit")
-            .strip_prefix(project_root.parent().unwrap())
-            .unwrap()
-            .display(),
-    );
+    // #[cfg(not(ios))]
+    // println!(
+    //     "cargo::metadata=RESOURCE_DIR={}",
+    //     out.join("bare-kit")
+    //         .strip_prefix(project_root.parent().unwrap())
+    //         .unwrap()
+    //         .display(),
+    // );
 
-    match platfrom {
+    match &*platform {
         "android" => build_for_android(&src, project),
-        "darwin" => build_for_darwin(&src, project),
-        "ios" => build_for_ios(&src, project),
+        "macos" => build_for_macos(&src, project),
+        "ios" => build_for_ios(&src, project, &project_root.parent().unwrap().to_path_buf()),
         "linux" => build_for_linux(&src, project),
-        "win32" => build_for_windows(&src, project),
+        "windows" => build_for_windows(&src, project),
         os => panic!("Unsupported target platform: {os}"),
     };
 
@@ -189,7 +185,7 @@ fn build_for_android<P: AsRef<Path>>(src: &P, project: &str) {
     println!("cargo::rustc-link-lib=bare-kit");
 }
 
-fn build_for_darwin<P: AsRef<Path>>(src: &P, project: &str) {
+fn build_for_macos<P: AsRef<Path>>(src: &P, project: &str) {
     let src = src.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let build = out.join("build");
@@ -268,28 +264,28 @@ fn build_for_darwin<P: AsRef<Path>>(src: &P, project: &str) {
 
     let header_a = scratch
         .join(format!("darwin-{}", &archs[0]))
-        .join("Frameworks/BareKit.framework/Versions/A/Headers/BareKit.h");
+        .join("BareKit.framework/Versions/A/Headers/BareKit.h");
     let header_b = scratch
         .join(format!("darwin-{}", &archs[1]))
-        .join("Frameworks/BareKit.framework/Versions/A/Headers/BareKit.h");
+        .join("BareKit.framework/Versions/A/Headers/BareKit.h");
     assert_eq!(fs::read(&header_a).unwrap(), fs::read(&header_b).unwrap());
     fs::copy(&header_a, &framework_head.join("BareKit.h")).unwrap();
 
     let plist_a = scratch
         .join(format!("darwin-{}", &archs[0]))
-        .join("Frameworks/BareKit.framework/Versions/A/Resources/Info.plist");
+        .join("BareKit.framework/Versions/A/Resources/Info.plist");
     let plist_b = scratch
         .join(format!("darwin-{}", &archs[1]))
-        .join("Frameworks/BareKit.framework/Versions/A/Resources/Info.plist");
+        .join("BareKit.framework/Versions/A/Resources/Info.plist");
     assert_eq!(fs::read(&plist_a).unwrap(), fs::read(&plist_b).unwrap());
     fs::copy(&plist_a, &framework_res.join("Info.plist")).unwrap();
 
     let bin_a = scratch
         .join(format!("darwin-{}", &archs[0]))
-        .join("Frameworks/BareKit.framework/Versions/A/BareKit");
+        .join("BareKit.framework/Versions/A/BareKit");
     let bin_b = scratch
         .join(format!("darwin-{}", &archs[1]))
-        .join("Frameworks/BareKit.framework/Versions/A/BareKit");
+        .join("BareKit.framework/Versions/A/BareKit");
     assert!(Command::new("lipo")
         .args([
             "-create",
@@ -325,13 +321,76 @@ fn build_for_darwin<P: AsRef<Path>>(src: &P, project: &str) {
         &framework.join("BareKit"),
     )
     .unwrap();
+
+    println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
 }
 
-fn build_for_ios<P: AsRef<Path>>(src: &P, _project: &str) {
-    let _src = src.as_ref();
+fn build_for_ios<P: AsRef<Path>>(src: &P, project: &str, project_root: &P) {
+    let src = src.as_ref();
+    let project_root = project_root.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let dest = out.join("bare-kit");
+    let build = out.join("build");
+    let arch = &*env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let arch = match arch {
+        "aarch64" => "arm64",
+        arch => arch,
+    };
+    let profile = env::var("PROFILE").unwrap();
+    let dest = project_root.join(format!("gen/apple/Externals/{arch}/{profile}"));
+    let mut args = vec![
+        "--yes",
+        MAKE,
+        "generate",
+        "--source",
+        src.to_str().unwrap(),
+        "--build",
+        build.to_str().unwrap(),
+        "--platform",
+        "ios",
+        "--arch",
+        arch,
+        "--define",
+        project,
+    ];
 
+    if env::var("CARGO_CFG_TARGET_ENV").unwrap() == "sim" {
+        args.push("--simulator");
+    }
+
+    if env::var("DEBUG").unwrap() == "true" {
+        args.push("--debug");
+    }
+
+    assert!(
+        Command::new(RUNNER).args(args).status().unwrap().success(),
+        "Configure failed"
+    );
+    assert!(
+        Command::new(RUNNER)
+            .args(["--yes", MAKE, "build", "--build", build.to_str().unwrap()])
+            .status()
+            .unwrap()
+            .success(),
+        "Build failed"
+    );
+    assert!(
+        Command::new(RUNNER)
+            .args([
+                "--yes",
+                MAKE,
+                "install",
+                "--build",
+                build.to_str().unwrap(),
+                "--prefix",
+                dest.to_str().unwrap(),
+            ])
+            .status()
+            .unwrap()
+            .success(),
+        "Install failed"
+    );
+
+    println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
     println!("cargo::rustc-link-search=framework={}", dest.display());
     println!("cargo::rustc-link-lib=framework=BareKit");
 }
