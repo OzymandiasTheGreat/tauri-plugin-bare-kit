@@ -1,20 +1,21 @@
-#[cfg(feature = "runtime")]
+use serde::Deserialize;
 use std::{
     env, fs, os,
     path::{Path, PathBuf},
     process::Command,
 };
 
-#[cfg(feature = "runtime")]
 const MAKE: &str = "bare-make@1.6.3";
-#[cfg(feature = "runtime")]
-const PLUGIN: &str = "tauri-plugin-bare-kit";
-#[cfg(all(feature = "runtime", unix))]
+#[cfg(unix)]
 const RUNNER: &str = "npx";
-#[cfg(all(feature = "runtime", windows))]
+#[cfg(windows)]
 const RUNNER: &str = "npx.cmd";
 
-#[cfg(feature = "runtime")]
+#[derive(Debug, Deserialize)]
+struct CONFIG {
+    root: String,
+}
+
 const COMMANDS: &[&str] = &[
     "bare_invalidate",
     "bare_init",
@@ -30,10 +31,6 @@ const COMMANDS: &[&str] = &[
     "bare_terminate",
 ];
 
-#[cfg(not(feature = "runtime"))]
-fn main() {}
-
-#[cfg(feature = "runtime")]
 fn main() {
     let src = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
@@ -43,29 +40,51 @@ fn main() {
         "windows" => "win32",
         os => os,
     };
-    let dest = match platfrom {
-        "android" => build_for_android(&src),
-        "darwin" => build_for_darwin(&src),
-        "ios" => build_for_ios(&src),
-        "linux" => build_for_linux(&src),
-        "win32" => build_for_windows(&src),
+
+    let config_str = String::from_utf8(
+        Command::new(env::var("CARGO").unwrap())
+            .current_dir(&out)
+            .arg("locate-project")
+            .output()
+            .unwrap()
+            .stdout,
+    )
+    .unwrap();
+    let config_json: CONFIG = serde_json::from_str(&config_str).unwrap();
+    let project_root = PathBuf::from(config_json.root);
+    let project = &*format!(
+        "PARENT_PROJECT_PATH={}",
+        project_root.ancestors().nth(2).unwrap().display(),
+    );
+
+    println!(
+        "cargo::metadata=RESOURCE_DIR={}",
+        out.join("bare-kit")
+            .strip_prefix(project_root.parent().unwrap())
+            .unwrap()
+            .display(),
+    );
+
+    match platfrom {
+        "android" => build_for_android(&src, project),
+        "darwin" => build_for_darwin(&src, project),
+        "ios" => build_for_ios(&src, project),
+        "linux" => build_for_linux(&src, project),
+        "win32" => build_for_windows(&src, project),
         os => panic!("Unsupported target platform: {os}"),
     };
-    println!("cargo::metadata=CURRENT_DIR={}", dest.display(),);
 
     generate_bindings(&src, &out);
 
     tauri_plugin::Builder::new(COMMANDS).build();
 }
 
-#[cfg(feature = "runtime")]
-fn build_for_android<P: AsRef<Path>>(src: &P) -> PathBuf {
+fn build_for_android<P: AsRef<Path>>(src: &P, project: &str) {
     let src = src.as_ref();
-    let profile = env::var("PROFILE").unwrap();
-    let temp = env::temp_dir().join(PLUGIN).join(profile);
-    let build = temp.join("build");
-    let scratch = temp.join("scratch");
-    let dest = temp.join("lib").join("android");
+    let out = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let build = out.join("build");
+    let scratch = out.join("scratch");
+    let dest = out.join("bare-kit");
     let archs = vec![
         ("arm", "armeabi-v7a"),
         ("arm64", "arm64-v8a"),
@@ -120,6 +139,8 @@ fn build_for_android<P: AsRef<Path>>(src: &P) -> PathBuf {
             arch,
             "--define",
             "ANDROID_STL=c++_shared",
+            "--define",
+            project,
         ];
 
         if env::var("DEBUG").unwrap() == "true" {
@@ -158,19 +179,22 @@ fn build_for_android<P: AsRef<Path>>(src: &P) -> PathBuf {
         fs::create_dir_all(&dest).unwrap();
         fs::copy(&scratch.join("lib").join(libname), &dest.join(libname)).unwrap();
         fs::copy(&stl, &dest.join(libcpp)).unwrap();
+
+        println!(
+            "cargo::rustc-link-search=native={}",
+            dest.join(arch).display()
+        );
     }
 
-    dest
+    println!("cargo::rustc-link-lib=bare-kit");
 }
 
-#[cfg(feature = "runtime")]
-fn build_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
+fn build_for_darwin<P: AsRef<Path>>(src: &P, project: &str) {
     let src = src.as_ref();
-    let profile = env::var("PROFILE").unwrap();
-    let temp = env::temp_dir().join(PLUGIN).join(profile);
-    let build = temp.join("build");
-    let scratch = temp.join("scratch");
-    let dest = temp.join("Frameworks").join("darwin");
+    let out = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let build = out.join("build");
+    let scratch = out.join("scratch");
+    let dest = out.join("bare-kit");
     let archs = vec!["arm64", "x64"];
     let framework = dest.join("BareKit.framework");
     let framework_bin = framework.join("Versions/A");
@@ -200,6 +224,8 @@ fn build_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
             "darwin",
             "--arch",
             arch,
+            "--define",
+            project,
         ];
 
         if env::var("DEBUG").unwrap() == "true" {
@@ -299,34 +325,29 @@ fn build_for_darwin<P: AsRef<Path>>(src: &P) -> PathBuf {
         &framework.join("BareKit"),
     )
     .unwrap();
-
-    dest
 }
 
-#[cfg(feature = "runtime")]
-fn build_for_ios<P: AsRef<Path>>(src: &P) -> PathBuf {
+fn build_for_ios<P: AsRef<Path>>(src: &P, _project: &str) {
     let _src = src.as_ref();
-    let profile = env::var("PROFILE").unwrap();
-    let temp = env::temp_dir().join(PLUGIN).join(profile);
-    let dest = temp.join("Frameworks").join("ios");
+    let out = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let dest = out.join("bare-kit");
 
-    dest
+    println!("cargo::rustc-link-search=framework={}", dest.display());
+    println!("cargo::rustc-link-lib=framework=BareKit");
 }
 
-#[cfg(feature = "runtime")]
-fn build_for_linux<P: AsRef<Path>>(src: &P) -> PathBuf {
+fn build_for_linux<P: AsRef<Path>>(src: &P, project: &str) {
     let src = src.as_ref();
-    let profile = env::var("PROFILE").unwrap();
-    let temp = env::temp_dir().join(PLUGIN).join(profile);
+    let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let arch = match &*env::var("CARGO_CFG_TARGET_ARCH").unwrap() {
         "aarch64" => "arm64",
         "x86_64" => "x64",
         arch => panic!("Unsupported target architecture: {arch}"),
     };
     let target = format!("linux-{arch}");
-    let build = temp.join("build").join(&target);
-    let scratch = temp.join("scratch").join(&target);
-    let dest = temp.join("lib").join(&target);
+    let build = out.join("build").join(&target);
+    let scratch = out.join("scratch").join(&target);
+    let dest = out.join("bare-kit").join(&target);
 
     fs::remove_file(dest.join("libbare-kit.so"))
         .or_else(|err| match err.kind() {
@@ -347,6 +368,8 @@ fn build_for_linux<P: AsRef<Path>>(src: &P) -> PathBuf {
         "linux",
         "--arch",
         arch,
+        "--define",
+        project,
     ];
 
     if env::var("DEBUG").unwrap() == "true" {
@@ -404,24 +427,24 @@ fn build_for_linux<P: AsRef<Path>>(src: &P) -> PathBuf {
         })
         .unwrap();
 
-    dest
+    println!("cargo::rustc-link-arg=-Wl,-rpath=$ORIGIN");
+    println!("cargo::rustc-link-search=native={}", dest.display());
+    println!("cargo::rustc-link-lib=dylib=bare-kit");
 }
 
-#[cfg(feature = "runtime")]
-fn build_for_windows<P: AsRef<Path>>(src: &P) -> PathBuf {
+fn build_for_windows<P: AsRef<Path>>(src: &P, project: &str) {
     let src = src.as_ref();
-    let profile = env::var("PROFILE").unwrap();
-    let temp = env::temp_dir().join(PLUGIN).join(profile);
+    let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let arch = match &*env::var("CARGO_CFG_TARGET_ARCH").unwrap() {
         "aarch64" => "arm64",
         "x86_64" => "x64",
         arch => panic!("Unsupported target architecture: {arch}"),
     };
     let target = format!("win32-{arch}");
-    let build = temp.join("build").join(&target);
-    let scratch = temp.join("scratch").join(&target);
-    let bin = temp.join("bin").join(&target);
-    let lib = temp.join("lib").join(&target);
+    let build = out.join("build").join(&target);
+    let scratch = out.join("scratch").join(&target);
+    let bin = out.join("bare-kit").join(&target);
+    let lib = out.join("lib").join(&target);
 
     fs::remove_file(bin.join("bare-kit.dll"))
         .or_else(|err| match err.kind() {
@@ -448,6 +471,8 @@ fn build_for_windows<P: AsRef<Path>>(src: &P) -> PathBuf {
         "win32",
         "--arch",
         arch,
+        "--define",
+        project,
     ];
 
     if env::var("DEBUG").unwrap() == "true" {
@@ -506,10 +531,10 @@ fn build_for_windows<P: AsRef<Path>>(src: &P) -> PathBuf {
         })
         .unwrap();
 
-    bin
+    println!("cargo::rustc-link-search=native={}", lib.display());
+    println!("cargo::rustc-link-lib=dylib=bare-kit");
 }
 
-#[cfg(feature = "runtime")]
 fn generate_bindings<S: AsRef<Path>, O: AsRef<Path>>(src: &S, out: &O) {
     let src = src.as_ref();
     let out = out.as_ref();
