@@ -18,7 +18,9 @@ set_target_properties(
   EXCLUDE_FROM_ALL FALSE
 )
 
-if(IOS)
+if(IOS OR ANDROID)
+  # sysroot set, so find_* fails for local files
+  # append project root to $PATH to fix that
   list(APPEND CMAKE_FIND_ROOT_PATH ${PARENT_PROJECT_PATH})
 endif()
 
@@ -58,5 +60,7 @@ install(
   TARGETS
     bare_kit
   FRAMEWORK DESTINATION
+    "."
+  LIBRARY DESTINATION
     "."
 )

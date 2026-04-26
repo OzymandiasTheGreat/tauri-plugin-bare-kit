@@ -49,26 +49,20 @@ fn main() {
     let project_root = PathBuf::from(meta_json.root);
     let project_root = if src == project_root.parent().unwrap() {
         // Development
-        &project_root.with_file_name("example")
+        &project_root.with_file_name("example/src-tauri")
     } else {
         // Installed as a dependency
-        project_root.ancestors().nth(2).unwrap()
+        project_root.parent().unwrap()
     };
-    let project = &*format!("PARENT_PROJECT_PATH={}", project_root.display());
-
-    // #[cfg(not(ios))]
-    // println!(
-    //     "cargo::metadata=RESOURCE_DIR={}",
-    //     out.join("bare-kit")
-    //         .strip_prefix(project_root.parent().unwrap())
-    //         .unwrap()
-    //         .display(),
-    // );
+    let project = &*format!(
+        "PARENT_PROJECT_PATH={}",
+        project_root.parent().unwrap().display()
+    );
 
     match &*platform {
-        "android" => build_for_android(&src, project),
+        "android" => build_for_android(&src, project, &project_root.to_path_buf()),
+        "ios" => build_for_ios(&src, project, &project_root.to_path_buf()),
         "macos" => build_for_macos(&src, project),
-        "ios" => build_for_ios(&src, project, &project_root.parent().unwrap().to_path_buf()),
         "linux" => build_for_linux(&src, project),
         "windows" => build_for_windows(&src, project),
         os => panic!("Unsupported target platform: {os}"),
@@ -79,115 +73,172 @@ fn main() {
     tauri_plugin::Builder::new(COMMANDS).build();
 }
 
-fn build_for_android<P: AsRef<Path>>(src: &P, project: &str) {
+fn build_for_android<P: AsRef<Path>>(src: &P, project: &str, project_root: &P) {
     let src = src.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let build = out.join("build");
-    let scratch = out.join("scratch");
-    let dest = out.join("bare-kit");
-    let archs = vec![
-        ("arm", "armeabi-v7a"),
-        ("arm64", "arm64-v8a"),
-        ("ia32", "x86"),
-        ("x64", "x86_64"),
-    ];
-    let libname = "libbare-kit.so";
-    let libcpp = "libc++_shared.so";
+    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let arch = match &*arch {
+        "aarch64" => "arm64",
+        "x86" => "ia32",
+        "x86_64" => "x64",
+        arch => arch,
+    };
+    let abi = match &*arch {
+        "arm" => "armeabi-v7a",
+        "arm64" => "arm64-v8a",
+        "ia32" => "x86",
+        "x64" => "x86_64",
+        abi => abi,
+    };
+    let dest = project_root
+        .as_ref()
+        .join(format!("gen/android/app/src/main/jniLibs/{abi}"));
     let ndk = PathBuf::from(env::var("ANDROID_NDK").unwrap());
     let host = match env::consts::OS {
         "macos" => "darwin-x86_64".to_string(),
         os => format!("{os}-x86_64"),
     };
+    let triple = match arch {
+        "arm" => "arm-linux-androideabi",
+        "arm64" => "aarch64-linux-android",
+        "ia32" => "i686-linux-android",
+        "x64" => "x86_64-linux-android",
+        abi => panic!("Shouldn't happen! Android ABI: {abi}"),
+    };
+    let libcpp = ndk.join(format!(
+        "toolchains/llvm/prebuilt/{host}/sysroot/usr/lib/{triple}/libc++_shared.so"
+    ));
+    let mut args = vec![
+        "--yes",
+        MAKE,
+        "generate",
+        "--source",
+        src.to_str().unwrap(),
+        "--build",
+        build.to_str().unwrap(),
+        "--platform",
+        "android",
+        "--arch",
+        arch,
+        "--define",
+        "ANDROID_STL=c++_shared",
+        "--define",
+        project,
+    ];
 
-    for (_, abi) in &archs {
-        fs::remove_file(dest.join(abi).join(libname))
-            .or_else(|err| match err.kind() {
-                std::io::ErrorKind::NotFound => Ok(()),
-                _ => Err(err),
-            })
-            .unwrap();
+    if env::var("DEBUG").unwrap() == "true" {
+        args.push("--debug");
     }
 
-    for (arch, abi) in archs {
-        let target = format!("android-{arch}");
-        let build = build.join(&target);
-        let scratch = scratch.join(&target);
-        let dest = dest.join(abi);
-        let triple = match abi {
-            "armeabi-v7a" => "arm-linux-androideabi",
-            "arm64-v8a" => "aarch64-linux-android",
-            "x86" => "i686-linux-android",
-            "x86_64" => "x86_64-linux-android",
-            abi => panic!("Shouldn't happen! Android ABI: {abi}"),
-        };
-        let stl = ndk
-            .join(format!(
-                "toolchains/llvm/prebuilt/{host}/sysroot/usr/lib/{triple}"
-            ))
-            .join(libcpp);
-        let mut args = vec![
-            "--yes",
-            MAKE,
-            "generate",
-            "--source",
-            src.to_str().unwrap(),
-            "--build",
-            build.to_str().unwrap(),
-            "--platform",
-            "android",
-            "--arch",
-            arch,
-            "--define",
-            "ANDROID_STL=c++_shared",
-            "--define",
-            project,
-        ];
+    assert!(
+        Command::new(RUNNER).args(args).status().unwrap().success(),
+        "Configure failed"
+    );
+    assert!(
+        Command::new(RUNNER)
+            .args(["--yes", MAKE, "build", "--build", build.to_str().unwrap()])
+            .status()
+            .unwrap()
+            .success(),
+        "Build failed"
+    );
+    assert!(
+        Command::new(RUNNER)
+            .args([
+                "--yes",
+                MAKE,
+                "install",
+                "--build",
+                build.to_str().unwrap(),
+                "--prefix",
+                dest.to_str().unwrap()
+            ])
+            .status()
+            .unwrap()
+            .success(),
+        "Install failed"
+    );
 
-        if env::var("DEBUG").unwrap() == "true" {
-            args.push("--debug");
-        }
+    fs::copy(&libcpp, dest.join(&libcpp.file_name().unwrap())).unwrap();
 
-        assert!(
-            Command::new(RUNNER).args(args).status().unwrap().success(),
-            "Configure failed"
-        );
-        assert!(
-            Command::new(RUNNER)
-                .args(["--yes", MAKE, "build", "--build", build.to_str().unwrap()])
-                .status()
-                .unwrap()
-                .success(),
-            "Build failed"
-        );
-        assert!(
-            Command::new(RUNNER)
-                .args([
-                    "--yes",
-                    MAKE,
-                    "install",
-                    "--build",
-                    build.to_str().unwrap(),
-                    "--prefix",
-                    scratch.to_str().unwrap()
-                ])
-                .status()
-                .unwrap()
-                .success(),
-            "Install failed"
-        );
-
-        fs::create_dir_all(&dest).unwrap();
-        fs::copy(&scratch.join("lib").join(libname), &dest.join(libname)).unwrap();
-        fs::copy(&stl, &dest.join(libcpp)).unwrap();
-
-        println!(
-            "cargo::rustc-link-search=native={}",
-            dest.join(arch).display()
-        );
-    }
-
+    println!(
+        "cargo::rustc-link-search=native={}",
+        dest.join(arch).display()
+    );
     println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
     println!("cargo::rustc-link-lib=bare-kit");
+}
+
+fn build_for_ios<P: AsRef<Path>>(src: &P, project: &str, project_root: &P) {
+    let src = src.as_ref();
+    let out = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let build = out.join("build");
+    let arch = &*env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let arch = match arch {
+        "aarch64" => "arm64",
+        arch => arch,
+    };
+    let profile = env::var("PROFILE").unwrap();
+    let dest = project_root
+        .as_ref()
+        .join(format!("gen/apple/Externals/{arch}/{profile}"));
+    let mut args = vec![
+        "--yes",
+        MAKE,
+        "generate",
+        "--source",
+        src.to_str().unwrap(),
+        "--build",
+        build.to_str().unwrap(),
+        "--platform",
+        "ios",
+        "--arch",
+        arch,
+        "--define",
+        project,
+    ];
+
+    if env::var("CARGO_CFG_TARGET_ENV").unwrap() == "sim" {
+        args.push("--simulator");
+    }
+
+    if env::var("DEBUG").unwrap() == "true" {
+        args.push("--debug");
+    }
+
+    assert!(
+        Command::new(RUNNER).args(args).status().unwrap().success(),
+        "Configure failed"
+    );
+    assert!(
+        Command::new(RUNNER)
+            .args(["--yes", MAKE, "build", "--build", build.to_str().unwrap()])
+            .status()
+            .unwrap()
+            .success(),
+        "Build failed"
+    );
+    assert!(
+        Command::new(RUNNER)
+            .args([
+                "--yes",
+                MAKE,
+                "install",
+                "--build",
+                build.to_str().unwrap(),
+                "--prefix",
+                dest.to_str().unwrap(),
+            ])
+            .status()
+            .unwrap()
+            .success(),
+        "Install failed"
+    );
+
+    println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
+    println!("cargo::rustc-link-search=framework={}", dest.display());
+    println!("cargo::rustc-link-lib=framework=BareKit");
 }
 
 fn build_for_macos<P: AsRef<Path>>(src: &P, project: &str) {
@@ -328,76 +379,6 @@ fn build_for_macos<P: AsRef<Path>>(src: &P, project: &str) {
     .unwrap();
 
     println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
-}
-
-fn build_for_ios<P: AsRef<Path>>(src: &P, project: &str, project_root: &P) {
-    let src = src.as_ref();
-    let project_root = project_root.as_ref();
-    let out = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let build = out.join("build");
-    let arch = &*env::var("CARGO_CFG_TARGET_ARCH").unwrap();
-    let arch = match arch {
-        "aarch64" => "arm64",
-        arch => arch,
-    };
-    let profile = env::var("PROFILE").unwrap();
-    let dest = project_root.join(format!("gen/apple/Externals/{arch}/{profile}"));
-    let mut args = vec![
-        "--yes",
-        MAKE,
-        "generate",
-        "--source",
-        src.to_str().unwrap(),
-        "--build",
-        build.to_str().unwrap(),
-        "--platform",
-        "ios",
-        "--arch",
-        arch,
-        "--define",
-        project,
-    ];
-
-    if env::var("CARGO_CFG_TARGET_ENV").unwrap() == "sim" {
-        args.push("--simulator");
-    }
-
-    if env::var("DEBUG").unwrap() == "true" {
-        args.push("--debug");
-    }
-
-    assert!(
-        Command::new(RUNNER).args(args).status().unwrap().success(),
-        "Configure failed"
-    );
-    assert!(
-        Command::new(RUNNER)
-            .args(["--yes", MAKE, "build", "--build", build.to_str().unwrap()])
-            .status()
-            .unwrap()
-            .success(),
-        "Build failed"
-    );
-    assert!(
-        Command::new(RUNNER)
-            .args([
-                "--yes",
-                MAKE,
-                "install",
-                "--build",
-                build.to_str().unwrap(),
-                "--prefix",
-                dest.to_str().unwrap(),
-            ])
-            .status()
-            .unwrap()
-            .success(),
-        "Install failed"
-    );
-
-    println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
-    println!("cargo::rustc-link-search=framework={}", dest.display());
-    println!("cargo::rustc-link-lib=framework=BareKit");
 }
 
 fn build_for_linux<P: AsRef<Path>>(src: &P, project: &str) {
