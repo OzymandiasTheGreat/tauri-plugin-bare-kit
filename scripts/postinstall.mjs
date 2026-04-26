@@ -5,7 +5,7 @@ import path from "path"
 import TOML from "@ltd/j-toml"
 import YAML from "yaml"
 import meta from "./bare-kit.json" with { type: "json" }
-import { exists, find_root, get_dependencies } from "./util.mjs"
+import { exists, find_root } from "./util.mjs"
 
 if (process.env.INIT_CWD !== process.cwd()) {
   const AUTOLINK = "tauri_plugin_bare_kit::autolink();"

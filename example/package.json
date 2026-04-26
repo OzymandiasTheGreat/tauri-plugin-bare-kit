@@ -10,7 +10,8 @@
     "build": "npm run build:bare && npm run build:expo",
     "build:bare": "tsc -p src-bare",
     "build:expo": "expo export --platform web",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
