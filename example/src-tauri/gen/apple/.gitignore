@@ -1,6 +1,4 @@
-app_iOS/
 app.xcodeproj/
 xcuserdata/
 build/
 Externals/
-ExportOptions.plist

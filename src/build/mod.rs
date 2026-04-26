@@ -1,9 +1,10 @@
-use std::{env, fs, path::PathBuf};
+#[cfg(target_os = "android")]
+use std::fs;
+use std::{env, path::PathBuf};
 
 pub fn autolink() {
-    let project = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
-        .parent()
-        .unwrap();
+    let project = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+    let project = project.parent().unwrap();
     let resource_dir = env::var("DEP_TAURI_PLUGIN_BARE_KIT_RESOURCE_DIR").unwrap();
 
     #[cfg(desktop)]

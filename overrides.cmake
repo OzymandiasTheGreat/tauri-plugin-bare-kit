@@ -141,16 +141,18 @@ function(generate_builtins)
 
     string(JSON name ERROR_VARIABLE error GET "${package}" "name")
 
-    if("${name}" IN_LIST SEEN)
+    string(JSON version ERROR_VARIABLE error GET "${package}" "version")
+
+    if("${name}@${version}" IN_LIST SEEN)
       continue()
     endif()
 
-    list(APPEND SEEN "${name}")
+    list(APPEND SEEN "${name}@${version}")
 
     string(JSON addon ERROR_VARIABLE error GET "${package}" "addon")
 
     if(addon)
-      set(entry "{\"addon\": \"${name}\"}")
+      set(entry "{\"addon\": \"${name}@${version}\"}")
 
       string(JSON index ERROR_VARIABLE error LENGTH "${builtins}")
 

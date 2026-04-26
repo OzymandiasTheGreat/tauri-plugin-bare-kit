@@ -47,10 +47,14 @@ fn main() {
     .unwrap();
     let meta_json: META = serde_json::from_str(&config_str).unwrap();
     let project_root = PathBuf::from(meta_json.root);
-    let project = &*format!(
-        "PARENT_PROJECT_PATH={}",
-        project_root.ancestors().nth(2).unwrap().display(),
-    );
+    let project_root = if src == project_root.parent().unwrap() {
+        // Development
+        &project_root.with_file_name("example")
+    } else {
+        // Installed as a dependency
+        project_root.ancestors().nth(2).unwrap()
+    };
+    let project = &*format!("PARENT_PROJECT_PATH={}", project_root.display());
 
     // #[cfg(not(ios))]
     // println!(

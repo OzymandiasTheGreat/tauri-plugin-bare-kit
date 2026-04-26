@@ -14,32 +14,6 @@ export async function safe_fetch(uri) {
     .catch(() => null)
 }
 
-export async function get_dependencies(version) {
-  const lock = await safe_fetch(
-    `https://raw.githubusercontent.com/holepunchto/bare-kit/${version}/package-lock.json`,
-  )
-
-  if (!lock) {
-    throw new Error("Could not retrieve bare-kit dependencies")
-  }
-
-  const dependencies = {}
-
-  for (const [key, dep] of Object.entries(lock.packages)) {
-    if (!dep.version || dep.dev || dep.optional || dep.devOptional) {
-      continue
-    }
-
-    const name = path.basename(key)
-
-    if (name.startsWith("bare")) {
-      dependencies[name] = dep.version
-    }
-  }
-
-  return dependencies
-}
-
 export async function find_root() {
   let cwd = process.env.INIT_CWD
   let parent
