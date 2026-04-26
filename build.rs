@@ -182,6 +182,7 @@ fn build_for_android<P: AsRef<Path>>(src: &P, project: &str) {
         );
     }
 
+    println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
     println!("cargo::rustc-link-lib=bare-kit");
 }
 
@@ -486,9 +487,10 @@ fn build_for_linux<P: AsRef<Path>>(src: &P, project: &str) {
         })
         .unwrap();
 
+    println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
     println!("cargo::rustc-link-arg=-Wl,-rpath=$ORIGIN");
     println!("cargo::rustc-link-search=native={}", dest.display());
-    println!("cargo::rustc-link-lib=dylib=bare-kit");
+    println!("cargo::rustc-link-lib=bare-kit");
 }
 
 fn build_for_windows<P: AsRef<Path>>(src: &P, project: &str) {
@@ -502,8 +504,8 @@ fn build_for_windows<P: AsRef<Path>>(src: &P, project: &str) {
     let target = format!("win32-{arch}");
     let build = out.join("build").join(&target);
     let scratch = out.join("scratch").join(&target);
-    let bin = out.join("bare-kit").join(&target);
-    let lib = out.join("lib").join(&target);
+    let bin = out.join("bare-kit/bin").join(&target);
+    let lib = out.join("bare-kit/lib").join(&target);
 
     fs::remove_file(bin.join("bare-kit.dll"))
         .or_else(|err| match err.kind() {
@@ -590,6 +592,10 @@ fn build_for_windows<P: AsRef<Path>>(src: &P, project: &str) {
         })
         .unwrap();
 
+    println!(
+        "cargo::metadata=RESOURCE_DIR={}",
+        lib.parent().unwrap().display()
+    );
     println!("cargo::rustc-link-search=native={}", lib.display());
     println!("cargo::rustc-link-lib=dylib=bare-kit");
 }
