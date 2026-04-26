@@ -384,22 +384,14 @@ fn build_for_macos<P: AsRef<Path>>(src: &P, project: &str) {
 fn build_for_linux<P: AsRef<Path>>(src: &P, project: &str) {
     let src = src.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let arch = match &*env::var("CARGO_CFG_TARGET_ARCH").unwrap() {
+    let build = out.join("build");
+    let dest = out.join("bare-kit");
+    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let arch = match &*arch {
         "aarch64" => "arm64",
         "x86_64" => "x64",
-        arch => panic!("Unsupported target architecture: {arch}"),
+        arch => arch,
     };
-    let target = format!("linux-{arch}");
-    let build = out.join("build").join(&target);
-    let scratch = out.join("scratch").join(&target);
-    let dest = out.join("bare-kit").join(&target);
-
-    fs::remove_file(dest.join("libbare-kit.so"))
-        .or_else(|err| match err.kind() {
-            std::io::ErrorKind::NotFound => Ok(()),
-            _ => Err(err),
-        })
-        .unwrap();
 
     let mut args = vec![
         "--yes",
@@ -442,35 +434,13 @@ fn build_for_linux<P: AsRef<Path>>(src: &P, project: &str) {
                 "--build",
                 build.to_str().unwrap(),
                 "--prefix",
-                scratch.to_str().unwrap()
+                dest.to_str().unwrap(),
             ])
             .status()
             .unwrap()
             .success(),
         "Install failed"
     );
-
-    fs::create_dir_all(&dest.parent().unwrap()).unwrap();
-    #[cfg(unix)]
-    os::unix::fs::symlink(&scratch.join("lib"), &dest)
-        .or_else(|err| {
-            if err.kind() == std::io::ErrorKind::AlreadyExists {
-                Ok(())
-            } else {
-                Err(err)
-            }
-        })
-        .unwrap();
-    #[cfg(windows)]
-    os::windows::fs::symlink_dir(&scratch.join("lib"), &dest)
-        .or_else(|err| {
-            if err.kind() == std::io::ErrorKind::AlreadyExists {
-                Ok(())
-            } else {
-                Err(err)
-            }
-        })
-        .unwrap();
 
     println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
     println!("cargo::rustc-link-arg=-Wl,-rpath=$ORIGIN");
