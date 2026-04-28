@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use std::{
-    env, fs, os,
+    env, fs,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -451,29 +451,14 @@ fn build_for_linux<P: AsRef<Path>>(src: &P, project: &str) {
 fn build_for_windows<P: AsRef<Path>>(src: &P, project: &str) {
     let src = src.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let arch = match &*env::var("CARGO_CFG_TARGET_ARCH").unwrap() {
+    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let arch = match &*arch {
         "aarch64" => "arm64",
         "x86_64" => "x64",
-        arch => panic!("Unsupported target architecture: {arch}"),
+        arch => arch,
     };
-    let target = format!("win32-{arch}");
-    let build = out.join("build").join(&target);
-    let scratch = out.join("scratch").join(&target);
-    let bin = out.join("bare-kit/bin").join(&target);
-    let lib = out.join("bare-kit/lib").join(&target);
-
-    fs::remove_file(bin.join("bare-kit.dll"))
-        .or_else(|err| match err.kind() {
-            std::io::ErrorKind::NotFound => Ok(()),
-            _ => Err(err),
-        })
-        .unwrap();
-    fs::remove_file(lib.join("bare-kit.lib"))
-        .or_else(|err| match err.kind() {
-            std::io::ErrorKind::NotFound => Ok(()),
-            _ => Err(err),
-        })
-        .unwrap();
+    let build = out.join("build");
+    let dest = out.join("bare-kit");
 
     let mut args = vec![
         "--yes",
@@ -516,7 +501,7 @@ fn build_for_windows<P: AsRef<Path>>(src: &P, project: &str) {
                 "--build",
                 build.to_str().unwrap(),
                 "--prefix",
-                scratch.to_str().unwrap()
+                dest.to_str().unwrap()
             ])
             .status()
             .unwrap()
@@ -524,34 +509,8 @@ fn build_for_windows<P: AsRef<Path>>(src: &P, project: &str) {
         "Install failed"
     );
 
-    fs::create_dir_all(&bin.parent().unwrap()).unwrap();
-    #[cfg(windows)]
-    os::windows::fs::symlink_dir(&scratch.join("bin"), &bin)
-        .or_else(|err| {
-            if err.kind() == std::io::ErrorKind::AlreadyExists {
-                Ok(())
-            } else {
-                Err(err)
-            }
-        })
-        .unwrap();
-    fs::create_dir_all(&lib.parent().unwrap()).unwrap();
-    #[cfg(windows)]
-    os::windows::fs::symlink_dir(&scratch.join("lib"), &lib)
-        .or_else(|err| {
-            if err.kind() == std::io::ErrorKind::AlreadyExists {
-                Ok(())
-            } else {
-                Err(err)
-            }
-        })
-        .unwrap();
-
-    println!(
-        "cargo::metadata=RESOURCE_DIR={}",
-        lib.parent().unwrap().display()
-    );
-    println!("cargo::rustc-link-search=native={}", lib.display());
+    println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
+    println!("cargo::rustc-link-search=native={}", dest.display());
     println!("cargo::rustc-link-lib=dylib=bare-kit");
 }
 

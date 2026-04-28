@@ -3,7 +3,9 @@ use std::{env, path::PathBuf};
 pub fn autolink() {
     let project = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let project = project.parent().unwrap();
-    let resource_dir = env::var("DEP_TAURI_PLUGIN_BARE_KIT_RESOURCE_DIR").unwrap();
+    let resource_dir = env::var("DEP_TAURI_PLUGIN_BARE_KIT_RESOURCE_DIR")
+        .unwrap()
+        .replace("\\", "\\\\");
     let platform = env::var("CARGO_CFG_TARGET_OS").unwrap();
 
     if vec!["macos", "linux", "windows"].contains(&&*platform) {

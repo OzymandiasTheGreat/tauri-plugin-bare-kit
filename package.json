@@ -57,9 +57,9 @@
     "README.md"
   ],
   "scripts": {
-    "bump-version": "./scripts/bump-version.mjs",
-    "postinstall": "./scripts/postinstall.mjs",
-    "update-bare-kit": "./scripts/update-bare-kit.mjs"
+    "bump-version": "node ./scripts/bump-version.mjs",
+    "postinstall": "node ./scripts/postinstall.mjs",
+    "update-bare-kit": "node ./scripts/update-bare-kit.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.9.0",

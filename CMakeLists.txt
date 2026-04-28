@@ -10,6 +10,10 @@ project(tauri_plugin_bare_kit LANGUAGES C CXX VERSION 0.1.0)
 
 set(PARENT_PROJECT_PATH "" CACHE PATH "Path to root tauri project (folder containing src-tauri/)")
 
+if(WIN32)
+  add_compile_options("-Wno-incompatible-pointer-types")
+endif()
+
 fetch_package("github:holepunchto/bare-kit@2.0.2")
 
 set_target_properties(
@@ -62,5 +66,9 @@ install(
   FRAMEWORK DESTINATION
     "."
   LIBRARY DESTINATION
+    "."
+  RUNTIME DESTINATION
+    "."
+  ARCHIVE DESTINATION
     "."
 )
