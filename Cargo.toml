@@ -1,46 +1,47 @@
+
 [package]
-name = "tauri-plugin-bare-kit"
-version = "0.1.0"
-authors = ["Tomas Ravinskas <tomas@tomasrav.me>"]
-description = "Effortless JavaScript backends for Tauri apps - Android 🤖 iOS 📱Linux 🐧 Macos 🖥️ Windows 💩"
-readme = "README.md"
-license = "Apache-2.0"
-repository = "https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit"
+name = 'tauri-plugin-bare-kit'
+version = '0.1.1'
+authors = ['Tomas Ravinskas <tomas@tomasrav.me>']
+description = 'Effortless JavaScript backends for Tauri apps - Android 🤖 iOS 📱Linux 🐧 Macos 🖥️ Windows 💩'
+readme = 'README.md'
+license = 'Apache-2.0'
+repository = 'https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit'
 keywords = [
-  "javascript",
-  "android",
-  "windows",
-  "macos",
-  "linux",
-  "ios",
-  "cross-platform",
-  "backend",
-  "bare",
-  "tauri",
-  "tauri-plugin",
-  "bare-kit",
+	'javascript',
+	'android',
+	'windows',
+	'macos',
+	'linux',
+	'ios',
+	'cross-platform',
+	'backend',
+	'bare',
+	'tauri',
+	'tauri-plugin',
+	'bare-kit',
 ]
-edition = "2021"
-rust-version = "1.77.2"
-exclude = ["/.vscode", "/api", "/example", "/node_modules", "/scripts"]
-links = "tauri-plugin-bare-kit"
+edition = '2021'
+rust-version = '1.77.2'
+exclude = ['/.vscode', '/api', '/example', '/node_modules', '/scripts']
+links = 'tauri-plugin-bare-kit'
 
 [dependencies]
-tauri = { version = "2.10.3" }
-serde = "1.0"
-thiserror = "2"
-tokio = "1.48.0"
+tauri = { version = '2.10.3' }
+serde = '1.0'
+thiserror = '2'
+tokio = '1.48.0'
 
 [target.'cfg(target_os = "android")'.dependencies]
-base64 = "0.22.1"
+base64 = '0.22.1'
 
 [build-dependencies]
-bindgen = "0.72.1"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0.149"
-tauri-plugin = { version = "2.5.4", features = ["build"] }
+bindgen = '0.72.1'
+serde = { version = '1.0', features = ['derive'] }
+serde_json = '1.0.149'
+tauri-plugin = { version = '2.5.4', features = ['build'] }
 
 [features]
-default = ["runtime"]
+default = ['runtime']
 build = []
 runtime = []
