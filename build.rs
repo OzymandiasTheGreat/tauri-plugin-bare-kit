@@ -245,138 +245,62 @@ fn build_for_macos<P: AsRef<Path>>(src: &P, project: &str) {
     let src = src.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let build = out.join("build");
-    let scratch = out.join("scratch");
     let dest = out.join("bare-kit");
-    let archs = vec!["arm64", "x64"];
-    let framework = dest.join("BareKit.framework");
-    let framework_bin = framework.join("Versions/A");
-    let framework_head = framework_bin.join("Headers");
-    let framework_res = framework_bin.join("Resources");
+    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let arch = match &*arch {
+        "aarch64" => "arm64",
+        "x86" => "ia32",
+        "x86_64" => "x64",
+        arch => arch,
+    };
+    let mut args = vec![
+        "--yes",
+        MAKE,
+        "generate",
+        "--source",
+        src.to_str().unwrap(),
+        "--build",
+        build.to_str().unwrap(),
+        "--platform",
+        "darwin",
+        "--arch",
+        arch,
+        "--define",
+        project,
+    ];
 
-    fs::remove_dir_all(&framework)
-        .or_else(|err| match err.kind() {
-            std::io::ErrorKind::NotFound => Ok(()),
-            _ => Err(err),
-        })
-        .unwrap();
-
-    for arch in &archs {
-        let target = format!("darwin-{arch}");
-        let build = build.join(&target);
-        let scratch = scratch.join(&target);
-        let mut args = vec![
-            "--yes",
-            MAKE,
-            "generate",
-            "--source",
-            src.to_str().unwrap(),
-            "--build",
-            build.to_str().unwrap(),
-            "--platform",
-            "darwin",
-            "--arch",
-            arch,
-            "--define",
-            project,
-        ];
-
-        if env::var("DEBUG").unwrap() == "true" {
-            args.push("--debug");
-        }
-
-        assert!(
-            Command::new(RUNNER).args(args).status().unwrap().success(),
-            "Configure failed"
-        );
-        assert!(
-            Command::new(RUNNER)
-                .args(["--yes", MAKE, "build", "--build", build.to_str().unwrap()])
-                .status()
-                .unwrap()
-                .success(),
-            "Build failed"
-        );
-        assert!(
-            Command::new(RUNNER)
-                .args([
-                    "--yes",
-                    MAKE,
-                    "install",
-                    "--build",
-                    build.to_str().unwrap(),
-                    "--prefix",
-                    scratch.to_str().unwrap(),
-                ])
-                .status()
-                .unwrap()
-                .success(),
-            "Install failed"
-        );
+    if env::var("DEBUG").unwrap() == "true" {
+        args.push("--debug");
     }
 
-    fs::create_dir_all(&framework_bin).unwrap();
-    fs::create_dir_all(&framework_head).unwrap();
-    fs::create_dir_all(&framework_res).unwrap();
-
-    let header_a = scratch
-        .join(format!("darwin-{}", &archs[0]))
-        .join("BareKit.framework/Versions/A/Headers/BareKit.h");
-    let header_b = scratch
-        .join(format!("darwin-{}", &archs[1]))
-        .join("BareKit.framework/Versions/A/Headers/BareKit.h");
-    assert_eq!(fs::read(&header_a).unwrap(), fs::read(&header_b).unwrap());
-    fs::copy(&header_a, &framework_head.join("BareKit.h")).unwrap();
-
-    let plist_a = scratch
-        .join(format!("darwin-{}", &archs[0]))
-        .join("BareKit.framework/Versions/A/Resources/Info.plist");
-    let plist_b = scratch
-        .join(format!("darwin-{}", &archs[1]))
-        .join("BareKit.framework/Versions/A/Resources/Info.plist");
-    assert_eq!(fs::read(&plist_a).unwrap(), fs::read(&plist_b).unwrap());
-    fs::copy(&plist_a, &framework_res.join("Info.plist")).unwrap();
-
-    let bin_a = scratch
-        .join(format!("darwin-{}", &archs[0]))
-        .join("BareKit.framework/Versions/A/BareKit");
-    let bin_b = scratch
-        .join(format!("darwin-{}", &archs[1]))
-        .join("BareKit.framework/Versions/A/BareKit");
-    assert!(Command::new("lipo")
-        .args([
-            "-create",
-            bin_a.to_str().unwrap(),
-            bin_b.to_str().unwrap(),
-            "-output",
-            framework_bin.join("BareKit").to_str().unwrap()
-        ])
-        .status()
-        .unwrap()
-        .success());
-
-    #[cfg(unix)]
-    os::unix::fs::symlink(
-        &framework_head.strip_prefix(&framework).unwrap(),
-        &framework.join("Headers"),
-    )
-    .unwrap();
-    #[cfg(unix)]
-    os::unix::fs::symlink(
-        &framework_res.strip_prefix(&framework).unwrap(),
-        &framework.join("Resources"),
-    )
-    .unwrap();
-    #[cfg(unix)]
-    os::unix::fs::symlink("A", &framework_bin.join("../Current")).unwrap();
-    #[cfg(unix)]
-    os::unix::fs::symlink(
-        &framework_bin
-            .join("BareKit")
-            .strip_prefix(&framework)
-            .unwrap(),
-        &framework.join("BareKit"),
-    )
-    .unwrap();
+    assert!(
+        Command::new(RUNNER).args(args).status().unwrap().success(),
+        "Configure failed"
+    );
+    assert!(
+        Command::new(RUNNER)
+            .args(["--yes", MAKE, "build", "--build", build.to_str().unwrap()])
+            .status()
+            .unwrap()
+            .success(),
+        "Build failed"
+    );
+    assert!(
+        Command::new(RUNNER)
+            .args([
+                "--yes",
+                MAKE,
+                "install",
+                "--build",
+                build.to_str().unwrap(),
+                "--prefix",
+                dest.to_str().unwrap(),
+            ])
+            .status()
+            .unwrap()
+            .success(),
+        "Install failed"
+    );
 
     println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
 }
