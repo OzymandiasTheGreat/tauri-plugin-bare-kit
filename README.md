@@ -18,18 +18,18 @@ Bare was built on V8 and libuv, similar to Node. What's more, Bare has built-in 
 
 BareKit is an SDK for Bare for native application development. It makes embedding Bare in your application almost trivial.
 
-> \<BareKit\> [...] provides a web worker-like API to start and manage isolated Bare threads, called worklets1, that expose an IPC abstraction with bindings for various languages.
+> \<BareKit\> [...] provides a web worker-like API to start and manage isolated Bare threads, called worklets, that expose an IPC abstraction with bindings for various languages.
 
 ### This plugin
 
-`tauri-plugin-bare-kit` provides BareKit bindings for rust through FFI and exposes familiar API for running Bare worklets to Tauri frontend.
+`tauri-plugin-bare-kit` provides BareKit bindings for rust through FFI and exposes familiar worker API for running Bare worklets to Tauri frontend.
 
 It also provides autolinking of native addons for JavaScript to avoid headaches and frustrations for users (DevEx matters!), so you can just `tauri plugin add tauri-plugin-bare-kit` and start installing packages from NPM and writing your code. When you build your app, everything will be included and correctly linked.
 
 ## Installation
 
 ```console
-tauri plugin add
+tauri plugin add tauri-plugin-bare-kit
 ```
 
 ### Note about iOS
@@ -54,8 +54,8 @@ IPC.on("data", (data) => console.log(b4a.toString(data)))
 IPC.write(b4a.from("Hello from Tauri!"))
 ```
 
-The bundle is automatically generated from your sources and used node modules during build and placed at the root next to package.json.
-You should add `app.bundle.json` and `app.bundle.json.d` to your `.gitignore` and ignore initial warnings from your IDE about missing import.
+For this plugin to find your entry point and generate a bundle for Bare, it looks in several locations. First it looks for a folder in your project's root (next to `package.json` and `src-tauri`) called `bare` (Bare convention) or `src-bare` (Tauri convention). This folder may optionally contain folders `src` and `dist` (in case you're transpiling your sources, e.g. TypeScript). Then it looks through all these locations for a file called `app.js`. Using this file it traverses `node_modules` to collect dependencies and produces a single file bundle in your root folder called `app.bundle.json`.
+It's just a single JSON string containing the entire stringified bundle that you should import on your frontend and pass to Bare worklet.
 
 ### API
 
