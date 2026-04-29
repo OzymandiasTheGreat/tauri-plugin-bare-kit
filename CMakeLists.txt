@@ -18,7 +18,7 @@ endif()
 
 include(overrides.cmake)
 
-project(tauri_plugin_bare_kit LANGUAGES C CXX VERSION 0.1.1)
+project(tauri_plugin_bare_kit LANGUAGES C CXX VERSION 0.1.2)
 
 if(WIN32)
   # arm64 windows treats incompatible pointers as error
