@@ -5,11 +5,15 @@ use std::{
     process::Command,
 };
 
-const MAKE: &str = "bare-make@latest";
+#[cfg(unix)]
+const NPM: &str = "npm";
+#[cfg(windows)]
+const NPM: &str = "npm.cmd";
 #[cfg(unix)]
 const RUNNER: &str = "npx";
 #[cfg(windows)]
 const RUNNER: &str = "npx.cmd";
+const MAKE: &str = "bare-make@latest";
 
 #[derive(Debug, Deserialize)]
 struct META {
@@ -35,8 +39,7 @@ fn main() {
     let src = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let platform = env::var("CARGO_CFG_TARGET_OS").unwrap();
-
-    let config_str = String::from_utf8(
+    let meta_str = String::from_utf8(
         Command::new(env::var("CARGO").unwrap())
             .current_dir(&out)
             .arg("locate-project")
@@ -45,26 +48,41 @@ fn main() {
             .stdout,
     )
     .unwrap();
-    let meta_json: META = serde_json::from_str(&config_str).unwrap();
-    let project_root = PathBuf::from(meta_json.root);
-    let project_root = if src == project_root.parent().unwrap() {
-        // Development
-        &project_root.with_file_name("example/src-tauri")
+    let meta_json: META = serde_json::from_str(&meta_str).unwrap();
+    let tauri_root = PathBuf::from(meta_json.root);
+    let tauri_root = tauri_root.parent().unwrap();
+    let project_root = tauri_root.parent().unwrap();
+    let mut extra_args: Vec<&str> = vec![];
+    let parent_project_path = format!("PARENT_PROJECT_PATH={}", project_root.display());
+    let node_modules_path = format!("NODE_MODULES_PATH={}", out.join("node_modules").display());
+
+    if project_root.join("bare").is_dir() || project_root.join("src-bare").is_dir() {
+        extra_args.append(&mut vec!["--define", &*parent_project_path]);
     } else {
-        // Installed as a dependency
-        project_root.parent().unwrap()
-    };
-    let project = &*format!(
-        "PARENT_PROJECT_PATH={}",
-        project_root.parent().unwrap().display()
-    );
+        extra_args.append(&mut vec!["--define", &*node_modules_path]);
+        fs::copy(src.join("package.json"), out.join("package.json")).unwrap();
+        fs::copy(src.join("package-lock.json"), out.join("package-lock.json")).unwrap();
+        assert!(Command::new(NPM)
+            .args([
+                "install",
+                "--prefix",
+                out.to_str().unwrap(),
+                "--ignore-scripts",
+                "--omit",
+                "dev",
+            ])
+            .current_dir(&src)
+            .status()
+            .unwrap()
+            .success());
+    }
 
     match &*platform {
-        "android" => build_for_android(&src, project, &project_root.to_path_buf()),
-        "ios" => build_for_ios(&src, project, &project_root.to_path_buf()),
-        "macos" => build_for_macos(&src, project),
-        "linux" => build_for_linux(&src, project),
-        "windows" => build_for_windows(&src, project),
+        "android" => build_for_android(&src, extra_args, &project_root.to_path_buf()),
+        "ios" => build_for_ios(&src, extra_args, &project_root.to_path_buf()),
+        "macos" => build_for_macos(&src, extra_args),
+        "linux" => build_for_linux(&src, extra_args),
+        "windows" => build_for_windows(&src, extra_args),
         os => panic!("Unsupported target platform: {os}"),
     };
 
@@ -73,7 +91,7 @@ fn main() {
     tauri_plugin::Builder::new(COMMANDS).build();
 }
 
-fn build_for_android<P: AsRef<Path>>(src: &P, project: &str, project_root: &P) {
+fn build_for_android<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>, project_root: &P) {
     let src = src.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let build = out.join("build");
@@ -123,9 +141,9 @@ fn build_for_android<P: AsRef<Path>>(src: &P, project: &str, project_root: &P) {
         arch,
         "--define",
         "ANDROID_STL=c++_shared",
-        "--define",
-        project,
     ];
+
+    args.extend(extra_args);
 
     if env::var("DEBUG").unwrap() == "true" {
         args.push("--debug");
@@ -170,7 +188,7 @@ fn build_for_android<P: AsRef<Path>>(src: &P, project: &str, project_root: &P) {
     println!("cargo::rustc-link-lib=bare-kit");
 }
 
-fn build_for_ios<P: AsRef<Path>>(src: &P, project: &str, project_root: &P) {
+fn build_for_ios<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>, project_root: &P) {
     let src = src.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let build = out.join("build");
@@ -195,9 +213,9 @@ fn build_for_ios<P: AsRef<Path>>(src: &P, project: &str, project_root: &P) {
         "ios",
         "--arch",
         arch,
-        "--define",
-        project,
     ];
+
+    args.extend(extra_args);
 
     if env::var("CARGO_CFG_TARGET_ENV").unwrap() == "sim" {
         args.push("--simulator");
@@ -241,7 +259,7 @@ fn build_for_ios<P: AsRef<Path>>(src: &P, project: &str, project_root: &P) {
     println!("cargo::rustc-link-lib=framework=BareKit");
 }
 
-fn build_for_macos<P: AsRef<Path>>(src: &P, project: &str) {
+fn build_for_macos<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>) {
     let src = src.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let build = out.join("build");
@@ -265,9 +283,9 @@ fn build_for_macos<P: AsRef<Path>>(src: &P, project: &str) {
         "darwin",
         "--arch",
         arch,
-        "--define",
-        project,
     ];
+
+    args.extend(extra_args);
 
     if env::var("DEBUG").unwrap() == "true" {
         args.push("--debug");
@@ -305,7 +323,7 @@ fn build_for_macos<P: AsRef<Path>>(src: &P, project: &str) {
     println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
 }
 
-fn build_for_linux<P: AsRef<Path>>(src: &P, project: &str) {
+fn build_for_linux<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>) {
     let src = src.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let build = out.join("build");
@@ -329,9 +347,9 @@ fn build_for_linux<P: AsRef<Path>>(src: &P, project: &str) {
         "linux",
         "--arch",
         arch,
-        "--define",
-        project,
     ];
+
+    args.extend(extra_args);
 
     if env::var("DEBUG").unwrap() == "true" {
         args.push("--debug");
@@ -372,7 +390,7 @@ fn build_for_linux<P: AsRef<Path>>(src: &P, project: &str) {
     println!("cargo::rustc-link-lib=bare-kit");
 }
 
-fn build_for_windows<P: AsRef<Path>>(src: &P, project: &str) {
+fn build_for_windows<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>) {
     let src = src.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
@@ -396,9 +414,9 @@ fn build_for_windows<P: AsRef<Path>>(src: &P, project: &str) {
         "win32",
         "--arch",
         arch,
-        "--define",
-        project,
     ];
+
+    args.extend(extra_args);
 
     if env::var("DEBUG").unwrap() == "true" {
         args.push("--debug");

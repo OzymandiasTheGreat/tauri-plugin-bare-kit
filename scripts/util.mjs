@@ -1,8 +1,6 @@
 import fs from "fs/promises"
 import path from "path"
 
-const PKG = "package.json"
-
 export async function safe_fetch(uri) {
   return fetch(uri)
     .then((response) => {
@@ -18,7 +16,7 @@ export async function find_root() {
   let cwd = process.env.INIT_CWD
   let parent
 
-  while (!(await exists(path.join(cwd, PKG)))) {
+  while (!(await exists(path.join(cwd, "package.json")))) {
     parent = path.dirname(cwd)
 
     if (parent === cwd) {

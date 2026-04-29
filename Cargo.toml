@@ -22,18 +22,7 @@ keywords = [
 ]
 edition = "2021"
 rust-version = "1.77.2"
-exclude = [
-  "/.vscode",
-  "/api",
-  "/example",
-  "/node_modules",
-  "/scripts",
-  "/.clang-format",
-  "/.gitignore",
-  "/.prettierrc",
-  "/package-lock.json",
-  "/package.json",
-]
+exclude = ["/.vscode", "/api", "/example", "/node_modules", "/scripts"]
 links = "tauri-plugin-bare-kit"
 
 [dependencies]

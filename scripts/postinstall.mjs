@@ -4,7 +4,7 @@ import fs from "fs/promises"
 import path from "path"
 import TOML from "@ltd/j-toml"
 import YAML from "yaml"
-import meta from "./bare-kit.json" with { type: "json" }
+import pkg from "../package.json" with { type: "json" }
 import { exists, find_root } from "./util.mjs"
 
 if (process.env.INIT_CWD !== process.cwd()) {
@@ -18,9 +18,9 @@ if (process.env.INIT_CWD !== process.cwd()) {
   const cargo_toml = TOML.parse(await fs.readFile(path.join(src_tauri, "Cargo.toml"), "utf-8"))
   const build_rs = await fs.readFile(path.join(src_tauri, "build.rs"), "utf-8")
 
-  cargo_toml.dependencies["tauri-plugin-bare-kit"] = meta.version
+  cargo_toml.dependencies["tauri-plugin-bare-kit"] = pkg.version
   cargo_toml["build-dependencies"]["tauri-plugin-bare-kit"] = TOML.inline({
-    "version": meta.version,
+    "version": pkg.version,
     "default-features": false,
     "features": ["build"],
   })
