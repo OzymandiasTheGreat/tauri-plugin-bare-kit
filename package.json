@@ -68,9 +68,7 @@
     "bare-stream": "2.8.0",
     "cmake-bare": "^1.7.7",
     "cmake-bare-bundle": "^3.0.0",
-    "cmake-fetch": "^1.4.7",
-    "libnpmexec": "^10.1.10",
-    "paparam": "^1.9.1"
+    "cmake-fetch": "^1.4.7"
   },
   "devDependencies": {
     "@ltd/j-toml": "^1.38.0",
