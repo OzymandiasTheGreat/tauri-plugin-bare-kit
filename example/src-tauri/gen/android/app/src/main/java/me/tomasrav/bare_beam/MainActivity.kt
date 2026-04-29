@@ -1,4 +1,4 @@
-package sh.quince.bare_beam
+package me.tomasrav.bare_beam
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge

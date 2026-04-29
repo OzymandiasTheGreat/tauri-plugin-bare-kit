@@ -1,6 +1,6 @@
 # Tauri Plugin BareKit
 
-> Write your backend logic once in JavaScript and have it run effortlessly across Android, iOS, macOS, Windows, and Linux. No sidecar needed, no complex configuration, no headaches 🐼
+> Write your backend logic once in JavaScript and have it run effortlessly run across Android, iOS, macOS, Windows, and Linux. No sidecar needed, no complex configuration, no headaches 🐼
 
 ## About Bare and BareKit
 
@@ -10,7 +10,7 @@ Bare is, in the words of it's creators:
 
 > "Small and modular JavaScript runtime for desktop and mobile" - Holepunch Inc.
 
-You can think of Bare as a mininode, tho it's actually much more than that. Bare was created with the goal of running JavaScript on mobile efficiently, without losing support for desktop platforms. Thus it's highly embeddable and treats every platform as a first class citizen.
+You can think of Bare as a mini-node, though it's actually much more than that. Bare was created with the goal of running JavaScript on mobile efficiently, without losing support for desktop platforms. Thus it's highly embeddable and treats every platform as a first class citizen.
 
 Bare was built on V8 and libuv, similar to Node. What's more, Bare has built-in support for N-API modules, in addition to it's own addon system. Thus you can make use of the sizable and growing Bare ecosystem or use the vast majority of modules available on NPM.
 
@@ -24,27 +24,39 @@ BareKit is an SDK for Bare for native application development. It makes embeddin
 
 `tauri-plugin-bare-kit` provides BareKit bindings for rust through FFI and exposes familiar worker API for running Bare worklets to Tauri frontend.
 
-It also provides autolinking of native addons for JavaScript to avoid headaches and frustrations for users (DevEx matters!), so you can just `tauri plugin add tauri-plugin-bare-kit` and start installing packages from NPM and writing your code. When you build your app, everything will be included and correctly linked.
+It also provides autolinking of native addons for JavaScript to avoid headaches and frustrations for users (DevEx matters!), so you can just `tauri add bare-kit` and start installing packages from NPM and writing your code. When you've built your app, everything will be included and correctly linked.
 
 ## Installation
 
+Prerequisites:
+
+- Node/npm
+- Clang
+
+Then just:
+
 ```console
-tauri plugin add tauri-plugin-bare-kit
+tauri add bare-kit
 ```
 
 ### Note about iOS
 
 Tauri's iOS build heavily depends on XCode so autolinking is trickier to implement. If you haven't yet generated iOS project at the time you install `tauri-plugin-bare-kit` `xcodebuild` will fail to find BareKit.
-Just run `npm install` again after generating iOS project and everything should work.
+Just delete `node_modules` and run `npm install` again after generating iOS project and everything should work.
 
 ## Usage
 
 ```typescript
 import { Worklet } from "tauri-plugin-bare-kit-api"
 import b4a from "b4a"
-import bundle from "../app.bundle.json"
+// import bundle from "../app.bundle.json"
 
 const worklet = await Worklet.init({ assets, memoryLimit })
+const bundle = `
+const { IPC } = BareKit
+IPC.on("data", (data) => console.log(b4a.toString(data)))
+IPC.write(b4a.from("Hello from Bare!"))
+`
 
 await worklet.start("/app.bundle", bundle, args)
 
@@ -54,8 +66,9 @@ IPC.on("data", (data) => console.log(b4a.toString(data)))
 IPC.write(b4a.from("Hello from Tauri!"))
 ```
 
-For this plugin to find your entry point and generate a bundle for Bare, it looks in several locations. First it looks for a folder in your project's root (next to `package.json` and `src-tauri`) called `bare` (Bare convention) or `src-bare` (Tauri convention). This folder may optionally contain folders `src` and `dist` (in case you're transpiling your sources, e.g. TypeScript). Then it looks through all these locations for a file called `app.js`. Using this file it traverses `node_modules` to collect dependencies and produces a single file bundle in your root folder called `app.bundle.json`.
-It's just a single JSON string containing the entire stringified bundle that you should import on your frontend and pass to Bare worklet.
+This will log `Hello from Tauri!` to the operating system log and `Hallo from Bare!` to Tauri's devtools console.
+
+For this plugin to find your entry point and generate a bundle for Bare, it looks for a file called `app.js` in several locations. First it looks for a folder in your project's root (next to `package.json` and `src-tauri`) called `bare` (Bare convention) or `src-bare` (Tauri convention). If this folder contains folders `src` or `dist` (in case you're transpiling your sources, e.g. TypeScript) it looks in them too. Using the entry point, this plugin traverses `node_modules` to collect dependencies and produces a single file bundle in your root folder called `app.bundle.json` and dependency manifest `app.bundle.json.d`. You should add these files to your `.gitignore`. The JSON file is just a single JSON string containing the entire stringified bundle that you should import on your frontend and pass to Bare worklet.
 
 ### API
 
@@ -166,7 +179,7 @@ Stop and destroy worklet freeing resources.
 ### Logging
 
 BareKit uses [liblog](https://github.com/holepunchto/liblog) as logging provider.
-You can read on how to access the log there. `tauri-plugin-bare-kit` logs with `bare-kit` as an identifier.
+You can read more on how to access the logs there.
 
 ## License
 

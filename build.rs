@@ -78,8 +78,8 @@ fn main() {
     }
 
     match &*platform {
-        "android" => build_for_android(&src, extra_args, &project_root.to_path_buf()),
-        "ios" => build_for_ios(&src, extra_args, &project_root.to_path_buf()),
+        "android" => build_for_android(&src, extra_args, &tauri_root.to_path_buf()),
+        "ios" => build_for_ios(&src, extra_args, &tauri_root.to_path_buf()),
         "macos" => build_for_macos(&src, extra_args),
         "linux" => build_for_linux(&src, extra_args),
         "windows" => build_for_windows(&src, extra_args),
@@ -91,7 +91,7 @@ fn main() {
     tauri_plugin::Builder::new(COMMANDS).build();
 }
 
-fn build_for_android<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>, project_root: &P) {
+fn build_for_android<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>, tauri_root: &P) {
     let src = src.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let build = out.join("build");
@@ -109,7 +109,7 @@ fn build_for_android<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>, project_roo
         "x64" => "x86_64",
         abi => abi,
     };
-    let dest = project_root
+    let dest = tauri_root
         .as_ref()
         .join(format!("gen/android/app/src/main/jniLibs/{abi}"));
     let ndk = PathBuf::from(env::var("ANDROID_NDK").unwrap());
@@ -188,7 +188,7 @@ fn build_for_android<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>, project_roo
     println!("cargo::rustc-link-lib=bare-kit");
 }
 
-fn build_for_ios<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>, project_root: &P) {
+fn build_for_ios<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>, tauri_root: &P) {
     let src = src.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let build = out.join("build");
@@ -198,7 +198,7 @@ fn build_for_ios<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>, project_root: &
         arch => arch,
     };
     let profile = env::var("PROFILE").unwrap();
-    let dest = project_root
+    let dest = tauri_root
         .as_ref()
         .join(format!("gen/apple/Externals/{arch}/{profile}"));
     let mut args = vec![
