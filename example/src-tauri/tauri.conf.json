@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "bare-beam",
   "version": "0.1.0",
-  "identifier": "sh.quince.bare_beam",
+  "identifier": "me.tomasrav.bare_beam",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:8081",

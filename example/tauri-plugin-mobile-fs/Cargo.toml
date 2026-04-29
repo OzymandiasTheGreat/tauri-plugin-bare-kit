@@ -1,11 +1,11 @@
 [package]
 name = "tauri-plugin-mobile-fs"
 version = "0.1.0"
-authors = [ "You" ]
-description = ""
+authors = ["Tomas Ravinskas <tomas@tomasrav.me>"]
+description = "An example tauri plugin to aid in accessing filesystems on mobile"
 edition = "2021"
 rust-version = "1.77.2"
-exclude = ["/api", "/node_modules"]
+exclude = ["/api", "/node_modules", "/package-lock.json", "/package.json"]
 links = "tauri-plugin-mobile-fs"
 
 [dependencies]

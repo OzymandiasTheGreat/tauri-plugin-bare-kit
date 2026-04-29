@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "tauri-plugin-bare-kit-api",
   "version": "0.1.0",
   "author": {
@@ -22,20 +21,29 @@
     }
   ],
   "license": "Apache-2.0",
-  "description": "Easy Javascript backends for Tauri apps with powerful bidirectional IPC/RPC - Android 🤖 iOS 📱Linux 🐧 Macos 🖥️ Windows 💩",
+  "description": "Effortless JavaScript backends for Tauri apps - Android 🤖 iOS 📱Linux 🐧 Macos 🖥️ Windows 💩",
   "keywords": [
-    "tauri",
-    "plugin",
+    "javascript",
+    "android",
+    "windows",
+    "macos",
+    "linux",
+    "ios",
+    "cross-platform",
+    "backend",
     "bare",
-    "bare-kit",
-    "engine",
-    "runtime"
+    "tauri",
+    "tauri-plugin",
+    "bare-kit"
   ],
   "homepage": "https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit",
   "repository": {
     "type": "git",
     "url": "https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit.git"
   },
+  "bugs": "https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit/issues",
+  "main": "./api/index.js",
+  "types": "./api/index.d.ts",
   "exports": {
     ".": {
       "types": "./api/index.d.ts",
@@ -45,15 +53,16 @@
   },
   "files": [
     "api",
-    "bin",
     "include",
     "permissions",
+    "scripts",
     "src",
     "build.rs",
     "Cargo.toml",
     "CMakeLists.txt",
     "LICENSE",
     "NOTICE",
+    "overrides.cmake",
     "README.md"
   ],
   "scripts": {

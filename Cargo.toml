@@ -1,11 +1,39 @@
 [package]
 name = "tauri-plugin-bare-kit"
 version = "0.1.0"
-authors = ["You"]
-description = ""
+authors = ["Tomas Ravinskas <tomas@tomasrav.me>"]
+description = "Effortless JavaScript backends for Tauri apps - Android 🤖 iOS 📱Linux 🐧 Macos 🖥️ Windows 💩"
+readme = "README.md"
+license = "Apache-2.0"
+repository = "https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit"
+keywords = [
+  "javascript",
+  "android",
+  "windows",
+  "macos",
+  "linux",
+  "ios",
+  "cross-platform",
+  "backend",
+  "bare",
+  "tauri",
+  "tauri-plugin",
+  "bare-kit",
+]
 edition = "2021"
 rust-version = "1.77.2"
-exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules"]
+exclude = [
+  "/.vscode",
+  "/api",
+  "/example",
+  "/node_modules",
+  "/scripts",
+  "/.clang-format",
+  "/.gitignore",
+  "/.prettierrc",
+  "/package-lock.json",
+  "/package.json",
+]
 links = "tauri-plugin-bare-kit"
 
 [dependencies]
