@@ -10,14 +10,6 @@
     {
       "type": "github",
       "url": "https://github.com/OzymandiasTheGreat"
-    },
-    {
-      "type": "patreon",
-      "url": "https://www.patreon.com/ozymandias"
-    },
-    {
-      "type": "donorbox",
-      "url": "https://donorbox.org/tomasrav-open-source-development"
     }
   ],
   "license": "Apache-2.0",

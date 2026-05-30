@@ -8,9 +8,7 @@
   "files": [
     "api"
   ],
-  "scripts": {},
   "dependencies": {
     "@tauri-apps/api": "^2.0.0"
-  },
-  "devDependencies": {}
+  }
 }
