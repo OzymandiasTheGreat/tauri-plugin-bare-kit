@@ -1,5 +1,5 @@
-import MDI from "@expo/vector-icons/MaterialCommunityIcons"
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native"
+import MDI from "@react-native-vector-icons/material-design-icons"
+import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router/react-navigation"
 import { Stack } from "expo-router"
 import { useCallback, useEffect } from "react"
 import { Pressable } from "react-native"

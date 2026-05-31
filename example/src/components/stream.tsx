@@ -1,4 +1,4 @@
-import MDI from "@expo/vector-icons/MaterialCommunityIcons"
+import MDI from "@react-native-vector-icons/material-design-icons"
 import { save } from "@tauri-apps/plugin-dialog"
 import { useCallback } from "react"
 import { FlatList, ListRenderItem, Pressable, View, Text } from "react-native"

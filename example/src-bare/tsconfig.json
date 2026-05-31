@@ -5,8 +5,10 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "customConditions": ["bare"],
+    "types": ["node"],
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "noImplicitAny": false
   }
 }

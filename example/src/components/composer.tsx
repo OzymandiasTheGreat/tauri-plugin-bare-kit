@@ -1,4 +1,4 @@
-import MDI from "@expo/vector-icons/MaterialCommunityIcons"
+import MDI from "@react-native-vector-icons/material-design-icons"
 import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager"
 import { open } from "@tauri-apps/plugin-dialog"
 import { useCallback, useState } from "react"

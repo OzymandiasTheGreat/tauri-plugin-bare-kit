@@ -1,0 +1,14 @@
+diff --git a/node_modules/expo/node_modules/@expo/cli/build/src/start/server/middleware/CorsMiddleware.js b/node_modules/expo/node_modules/@expo/cli/build/src/start/server/middleware/CorsMiddleware.js
+index 689e20d..d7f4ce5 100644
+--- a/node_modules/expo/node_modules/@expo/cli/build/src/start/server/middleware/CorsMiddleware.js
++++ b/node_modules/expo/node_modules/@expo/cli/build/src/start/server/middleware/CorsMiddleware.js
+@@ -17,7 +17,8 @@ _export(exports, {
+     }
+ });
+ const DEFAULT_ALLOWED_CORS_HOSTS = [
+-    'devtools'
++    'devtools',
++    "tauri.localhost"
+ ];
+ const _isLocalHostname = (hostname)=>{
+     if (hostname === 'localhost') {

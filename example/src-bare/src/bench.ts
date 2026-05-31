@@ -19,11 +19,11 @@ export async function benchStreaming(req: IncomingRequest, data: unknown): Promi
 
   requestStream.on("error", console.error)
   responseStream.on("error", console.error)
-  requestStream.on("data", (data: Uint8Array) => {
+  requestStream.on("data", ((data: Uint8Array) => {
     const response = b4a.allocUnsafe(data.byteLength)
     sodium.crypto_stream_xor(response, data, NONCE, KEY)
     responseStream.write(response)
-  })
+  }) as (data: unknown) => void)
   requestStream.on("end", () => responseStream.end())
   await new Promise<void>((resolve) => responseStream.on("close", resolve))
   return null

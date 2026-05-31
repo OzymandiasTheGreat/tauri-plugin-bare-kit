@@ -57,14 +57,14 @@
   },
   "dependencies": {
     "@ltd/j-toml": "^1.38.0",
-    "@tauri-apps/api": "^2.9.0",
-    "b4a": "^1.7.3",
-    "bare-events": "2.8.2",
-    "bare-stream": "2.8.0",
-    "cmake-bare": "^1.7.7",
+    "@tauri-apps/api": "^2.11.0",
+    "b4a": "^1.8.1",
+    "bare-events": "^2.8.3",
+    "bare-stream": "^2.13.1",
+    "cmake-bare": "^1.8.0",
     "cmake-bare-bundle": "^3.0.0",
-    "cmake-fetch": "^1.4.7",
-    "semver": "^7.7.4",
-    "yaml": "^2.8.1"
+    "cmake-fetch": "^1.5.1",
+    "semver": "^7.8.1",
+    "yaml": "^2.9.0"
   }
 }
