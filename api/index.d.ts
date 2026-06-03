@@ -1,38 +1,39 @@
-import EventEmitter from "bare-events"
-import { Duplex } from "bare-stream"
+import { Duplex } from "streamx"
+import EventEmitter, { EventMap } from "bare-events"
 
-declare class BareIPC extends Duplex {
-  readonly worklet: BareWorklet
-
-  toJSON(): { worklet: { started: boolean; terminated: boolean; suspended: boolean } }
+declare class IPC extends Duplex {
+  readonly worklet: Worklet
 }
 
-declare class BareWorklet extends EventEmitter<{
-  start: []
-  terminate: []
-  suspend: []
+export interface WorkletEvents extends EventMap {
+  suspend: [linger: number]
+  wakeup: [deadline: number]
+  idle: []
   resume: []
-  wakeup: []
-}> {
-  static init(options?: { memoryLimit?: number; assets?: string | null }): Promise<BareWorklet>
-
-  readonly handle: number
-  readonly IPC: BareIPC
-  readonly started: boolean
-  readonly terminated: boolean
-  readonly suspended: boolean
-
-  start(filename: string, source: string | Uint8Array | null, args?: string[]): Promise<void>
-  suspend(linger?: number): Promise<void>
-  static suspend(linger?: number): Promise<void>
-  resume(): Promise<void>
-  static resume(): Promise<void>
-  wakeup(deadline?: number): Promise<void>
-  static wakeup(deadline?: number): Promise<void>
-  terminate(): Promise<void>
-  toJSON(): { started: boolean; terminated: boolean; suspended: boolean }
 }
 
-export declare const Worklet: typeof BareWorklet
-export type Worklet = BareWorklet
-export {}
+export interface WorkletOptions {
+  memoryLimit?: number
+  assets?: string
+}
+
+export class Worklet extends EventEmitter<WorkletEvents> {
+  static optimizeForMemory(enabled: boolean): Promise<void>
+  static init(options?: WorkletOptions): Promise<Worklet>
+  readonly IPC: IPC
+
+  start(filename: string, args?: string[]): Promise<void>
+  start(filename: string, source: Uint8Array, args?: string[]): Promise<void>
+  start(filename: string, source: string, args?: string[]): Promise<void>
+
+  suspend(linger?: number): Promise<void>
+  resume(): Promise<void>
+  wakeup(deadline?: number): Promise<void>
+  update(state?: unknown): Promise<void>
+  terminate(): Promise<void>
+
+  static suspend(linger?: number): Promise<void>
+  static resume(): Promise<void>
+  static wakeup(deadline?: number): Promise<void>
+  static update(state?: unknown): Promise<void>
+}

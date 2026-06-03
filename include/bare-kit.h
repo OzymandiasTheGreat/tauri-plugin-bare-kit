@@ -8,21 +8,33 @@ extern "C" {
 #include <stdbool.h>
 #include <stddef.h>
 
+// #include <uv.h>
 #ifndef UV_H
-typedef struct uv_buf_t {
+
+typedef struct {
   char *base;
   size_t len;
 } uv_buf_t;
 
-typedef struct uv_thread_t uv_thread_t;
-typedef struct uv_barrier_t uv_barrier_t;
-typedef struct uv_sem_t uv_sem_t;
-
 uv_buf_t
 uv_buf_init(char *base, unsigned int len);
+
 #endif // UV_H
 
-#define BARE_IPC_READ_BUFFER_SIZE 64 * 1024
+// #include <bare.h>
+#ifndef BARE_H
+
+typedef struct bare_s bare_t;
+
+typedef void (*bare_suspend_cb)(bare_t *, int linger, void *data);
+typedef void (*bare_wakeup_cb)(bare_t *, int deadline, void *data);
+typedef void (*bare_idle_cb)(bare_t *, void *data);
+typedef void (*bare_resume_cb)(bare_t *, void *data);
+
+#endif // BARE_H
+
+// #include <shared/worklet.h>
+#ifndef BARE_KIT_WORKLET_H
 
 typedef struct bare_worklet_s bare_worklet_t;
 typedef struct bare_worklet_options_s bare_worklet_options_t;
@@ -61,6 +73,18 @@ bare_worklet_init(bare_worklet_t *worklet, const bare_worklet_options_t *options
 void
 bare_worklet_destroy(bare_worklet_t *worklet);
 
+int
+bare_worklet_on_suspend(bare_worklet_t *worklet, bare_suspend_cb cb, void *data);
+
+int
+bare_worklet_on_wakeup(bare_worklet_t *worklet, bare_wakeup_cb cb, void *data);
+
+int
+bare_worklet_on_idle(bare_worklet_t *worklet, bare_idle_cb cb, void *data);
+
+int
+bare_worklet_on_resume(bare_worklet_t *worklet, bare_resume_cb cb, void *data);
+
 void *
 bare_worklet_get_data(bare_worklet_t *worklet);
 
@@ -81,6 +105,13 @@ bare_worklet_wakeup(bare_worklet_t *worklet, int deadline);
 
 int
 bare_worklet_terminate(bare_worklet_t *worklet);
+
+#endif // BARE_KIT_WORKLET_H
+
+// #include <shared/ipc.h>
+#ifndef BARE_KIT_IPC_H
+
+#define BARE_IPC_READ_BUFFER_SIZE 64 * 1024
 
 typedef struct bare_ipc_s bare_ipc_t;
 typedef struct bare_ipc_poll_s bare_ipc_poll_t;
@@ -145,6 +176,8 @@ bare_ipc_poll_start(bare_ipc_poll_t *poll, int events, bare_ipc_poll_cb cb);
 
 int
 bare_ipc_poll_stop(bare_ipc_poll_t *poll);
+
+#endif // BARE_KIT_IPC_H
 
 #ifdef __cplusplus
 }

@@ -2,22 +2,20 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PingRequest {
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct PingResponse {
-    pub value: Option<String>,
+pub struct OptimizeForMemoryRequest {
+    pub enabled: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct InitRequest {
+pub struct NewWorkletRequest {
     pub memory_limit: usize,
     pub assets: Option<String>,
     pub on_poll: u32,
+    pub on_suspend: u32,
+    pub on_wakeup: u32,
+    pub on_idle: u32,
+    pub on_resume: u32,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

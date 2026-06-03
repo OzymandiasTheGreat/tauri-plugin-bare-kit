@@ -1,8 +1,8 @@
 [default]
 description = "Default permissions for the plugin"
 permissions = [
-  "allow-bare-invalidate",
-  "allow-bare-init",
+  "allow-bare-optimize-for-memory",
+  "allow-bare-new-worklet",
   "allow-bare-start-file",
   "allow-bare-start-utf8",
   "allow-bare-start-bytes",

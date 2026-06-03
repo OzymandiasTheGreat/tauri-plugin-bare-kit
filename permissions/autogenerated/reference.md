@@ -4,8 +4,8 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-bare-invalidate`
-- `allow-bare-init`
+- `allow-bare-optimize-for-memory`
+- `allow-bare-new-worklet`
 - `allow-bare-start-file`
 - `allow-bare-start-utf8`
 - `allow-bare-start-bytes`
@@ -29,25 +29,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`bare-kit:allow-bare-init`
+`bare-kit:allow-bare-new-worklet`
 
 </td>
 <td>
 
-Enables the bare_init command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`bare-kit:deny-bare-init`
-
-</td>
-<td>
-
-Denies the bare_init command without any pre-configured scope.
+Enables the bare_new_worklet command without any pre-configured scope.
 
 </td>
 </tr>
@@ -55,12 +42,12 @@ Denies the bare_init command without any pre-configured scope.
 <tr>
 <td>
 
-`bare-kit:allow-bare-invalidate`
+`bare-kit:deny-bare-new-worklet`
 
 </td>
 <td>
 
-Enables the bare_invalidate command without any pre-configured scope.
+Denies the bare_new_worklet command without any pre-configured scope.
 
 </td>
 </tr>
@@ -68,12 +55,25 @@ Enables the bare_invalidate command without any pre-configured scope.
 <tr>
 <td>
 
-`bare-kit:deny-bare-invalidate`
+`bare-kit:allow-bare-optimize-for-memory`
 
 </td>
 <td>
 
-Denies the bare_invalidate command without any pre-configured scope.
+Enables the bare_optimize_for_memory command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`bare-kit:deny-bare-optimize-for-memory`
+
+</td>
+<td>
+
+Denies the bare_optimize_for_memory command without any pre-configured scope.
 
 </td>
 </tr>

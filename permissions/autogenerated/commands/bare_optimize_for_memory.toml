@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-bare-optimize-for-memory"
+description = "Enables the bare_optimize_for_memory command without any pre-configured scope."
+commands.allow = ["bare_optimize_for_memory"]
+
+[[permission]]
+identifier = "deny-bare-optimize-for-memory"
+description = "Denies the bare_optimize_for_memory command without any pre-configured scope."
+commands.deny = ["bare_optimize_for_memory"]

@@ -21,8 +21,8 @@ struct META {
 }
 
 const COMMANDS: &[&str] = &[
-    "bare_invalidate",
-    "bare_init",
+    "bare_optimize_for_memory",
+    "bare_new_worklet",
     "bare_start_file",
     "bare_start_utf8",
     "bare_start_bytes",

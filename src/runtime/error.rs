@@ -6,14 +6,14 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error("{0}")]
     BareKit(String),
-    #[cfg(target_os = "android")]
-    #[error(transparent)]
-    Base64(#[from] base64::DecodeError),
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[cfg(mobile)]
     #[error(transparent)]
     PluginInvoke(#[from] tauri::plugin::mobile::PluginInvokeError),
+    #[cfg(target_os = "android")]
+    #[error(transparent)]
+    Base64(#[from] base64::DecodeError),
 }
 
 impl Serialize for Error {

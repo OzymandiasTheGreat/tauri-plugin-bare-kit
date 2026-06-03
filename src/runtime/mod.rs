@@ -5,19 +5,15 @@ use tauri::{
     Manager, RunEvent, Runtime,
 };
 
-pub use models::*;
+pub use error::{Error, Result};
+pub use plugin::models::*;
 
+use plugin::{commands, BareKit};
+
+pub mod bare_kit;
 pub mod error;
 
-mod commands;
-mod ffi;
-mod models;
-mod module;
-mod worklet;
-
-pub use error::{Error, Result};
-
-use module::BareKit;
+mod plugin;
 
 /// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the bare-kit APIs.
 pub trait BareKitExt<R: Runtime> {
@@ -37,8 +33,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::new("bare-kit")
         .js_init_script(init_js)
         .invoke_handler(tauri::generate_handler![
-            commands::bare_invalidate,
-            commands::bare_init,
+            commands::bare_optimize_for_memory,
+            commands::bare_new_worklet,
             commands::bare_start_file,
             commands::bare_start_utf8,
             commands::bare_start_bytes,

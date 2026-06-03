@@ -6,26 +6,37 @@ use tauri::ipc::{InvokeBody, Request, Response};
 
 use tauri::{command, AppHandle, Runtime, WebviewWindow};
 
-use crate::runtime::models::*;
+use crate::runtime::plugin::models::*;
 use crate::runtime::BareKitExt;
 use crate::runtime::Result;
 
 #[command]
-pub(crate) fn bare_invalidate<R: Runtime>(app: AppHandle<R>) -> Result<()> {
-    app.bare_kit().lock().unwrap().invalidate()
+pub(crate) fn bare_optimize_for_memory<R: Runtime>(
+    app: AppHandle<R>,
+    payload: OptimizeForMemoryRequest,
+) -> Result<()> {
+    app.bare_kit()
+        .lock()
+        .unwrap()
+        .optimize_for_memory(payload.enabled)
 }
 
 #[command]
-pub(crate) fn bare_init<R: Runtime>(
+pub(crate) fn bare_new_worklet<R: Runtime>(
     app: AppHandle<R>,
     window: WebviewWindow<R>,
-    payload: InitRequest,
+    payload: NewWorkletRequest,
 ) -> Result<u8> {
-    app.bare_kit().lock().unwrap().init(
+    app.clone().bare_kit().lock().unwrap().new_worklet(
+        app,
+        window,
         payload.memory_limit,
         payload.assets,
-        window,
         payload.on_poll,
+        payload.on_suspend,
+        payload.on_wakeup,
+        payload.on_idle,
+        payload.on_resume,
     )
 }
 
@@ -69,15 +80,28 @@ pub(crate) fn bare_start_bytes<R: Runtime>(
 #[cfg(not(target_os = "android"))]
 #[command]
 pub(crate) fn bare_read<R: Runtime>(app: AppHandle<R>, payload: ReadRequest) -> Result<Response> {
-    Ok(Response::new(
-        app.bare_kit().lock().unwrap().read(payload.id)?,
-    ))
+    let data = app.bare_kit().lock().unwrap().read(payload.id).unwrap();
+
+    if let Some(data) = data {
+        Ok(Response::new(data))
+    } else {
+        Ok(Response::new(vec![]))
+    }
 }
 
 #[cfg(target_os = "android")]
 #[command]
-pub(crate) fn bare_read<R: Runtime>(app: AppHandle<R>, payload: ReadRequest) -> Result<String> {
-    Ok(BASE64_STANDARD.encode(app.bare_kit().lock().unwrap().read(payload.id)?))
+pub(crate) fn bare_read<R: Runtime>(
+    app: AppHandle<R>,
+    payload: ReadRequest,
+) -> Result<Option<String>> {
+    let data = app.bare_kit().lock().unwrap().read(payload.id).unwrap();
+
+    if let Some(data) = data {
+        Ok(BASE64_STANDARD.encode(data))
+    } else {
+        Ok(None)
+    }
 }
 
 #[cfg(not(target_os = "android"))]
@@ -86,9 +110,15 @@ pub(crate) fn bare_write<R: Runtime>(app: AppHandle<R>, payload: Request<'_>) ->
     let InvokeBody::Raw(payload) = payload.body() else {
         return Err("Invalid payload for write request".into());
     };
+
     let id = payload[0];
-    let data = payload[1..].to_vec();
-    app.bare_kit().lock().unwrap().write(id, data)
+
+    if payload.len() == 1 {
+        app.bare_kit().lock().unwrap().write(id, None)
+    } else {
+        let data = payload[1..].to_vec();
+        app.bare_kit().lock().unwrap().write(id, Some(data))
+    }
 }
 
 #[cfg(target_os = "android")]
@@ -96,8 +126,13 @@ pub(crate) fn bare_write<R: Runtime>(app: AppHandle<R>, payload: Request<'_>) ->
 pub(crate) fn bare_write<R: Runtime>(app: AppHandle<R>, payload: String) -> Result<i32> {
     let payload = BASE64_STANDARD.decode(payload)?;
     let id = payload[0];
-    let data = payload[1..].to_vec();
-    app.bare_kit().lock().unwrap().write(id, data)
+
+    if payload.len() == 1 {
+        app.bare_kit().lock().unwrap().write(id, None)
+    } else {
+        let data = payload[1..].to_vec();
+        app.bare_kit().lock().unwrap().write(id, Some(data))
+    }
 }
 
 #[command]
