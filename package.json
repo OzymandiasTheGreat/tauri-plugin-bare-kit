@@ -53,7 +53,10 @@
   "scripts": {
     "bump-version": "node ./scripts/bump-version.mjs",
     "postinstall": "node ./scripts/postinstall.mjs",
-    "update-bare-kit": "node ./scripts/update-bare-kit.mjs"
+    "update-bare-kit": "node ./scripts/update-bare-kit.mjs",
+    "test": "npm run test:build && npm run test:wdio",
+    "test:build": "npm run --prefix tests tauri build",
+    "test:wdio": "npm run --prefix tests test"
   },
   "dependencies": {
     "@ltd/j-toml": "^1.38.0",

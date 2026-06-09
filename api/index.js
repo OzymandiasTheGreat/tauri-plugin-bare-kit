@@ -336,4 +336,4 @@ class BareKitWorklet extends EventEmitter {
   }
 }
 
-module.exports.Worklet = BareKitWorklet
+module.exports = { Worklet: BareKitWorklet }
