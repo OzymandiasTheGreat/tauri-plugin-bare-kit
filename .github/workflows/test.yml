@@ -56,7 +56,7 @@ jobs:
 
       - name: Build test Tauri app
         working-directory: tests
-        run: npm run tauri build
+        run: npm run tauri build -- -- --target-dir ../../target
 
       - name: Run tests (macOS)
         if: matrix.os == 'macos-latest'
