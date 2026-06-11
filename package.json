@@ -55,9 +55,9 @@
     "postinstall": "node ./scripts/postinstall.mjs",
     "update-bare-kit": "node ./scripts/update-bare-kit.mjs",
     "test": "npm run test:cargo && npm run test:build && npm run test:wdio",
-    "test:build": "npm run --prefix tests tauri build",
+    "test:build": "npm run --prefix tests tauri build -- -- --target-dir ../../target",
     "test:wdio": "npm run --prefix tests test",
-    "test:cargo": "cargo test --features tests"
+    "test:cargo": "cargo test --release --features tests"
   },
   "dependencies": {
     "@ltd/j-toml": "^1.38.0",

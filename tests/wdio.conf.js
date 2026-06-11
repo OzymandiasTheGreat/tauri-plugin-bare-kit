@@ -30,7 +30,7 @@ export const config = {
   logLevel: "info",
   bail: 0,
   waitforTimeout: 10_000,
-  connectionRetryTimeout: 120_000,
+  connectionRetryTimeout: 180_000,
   connectionRetryCount: 3,
   framework: "mocha",
   reporters: ["spec"],
@@ -40,7 +40,7 @@ export const config = {
   },
 
   onPrepare: async function (config, capabilities) {
-    const bin = path.resolve(__dirname, "src-tauri/target/release", BIN)
+    const bin = path.resolve(__dirname, "../target/release", BIN)
 
     console.log(`Starting tauri app at ${bin}`)
 

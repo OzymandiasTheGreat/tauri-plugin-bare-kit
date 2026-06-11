@@ -21,6 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Enable Windows long paths for Git
+        run: git config --global core.longpaths true
+
       - uses: awalsh128/cache-apt-pkgs-action@latest
         if: matrix.os == 'ubuntu-latest'
         with:
