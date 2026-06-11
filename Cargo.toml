@@ -22,6 +22,9 @@ tokio = '1'
 [target.'cfg(target_os = "android")'.dependencies]
 base64 = '0.22.1'
 
+[dev-dependencies]
+rand = '0.10'
+
 [build-dependencies]
 bindgen = '0.72.1'
 serde = { version = '1.0', features = ['derive'] }
@@ -32,3 +35,4 @@ tauri-plugin = { version = '2.6.2', features = ['build'] }
 default = ['runtime']
 build = []
 runtime = []
+tests = []

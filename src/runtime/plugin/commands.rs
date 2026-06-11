@@ -11,7 +11,7 @@ use crate::runtime::BareKitExt;
 use crate::runtime::Result;
 
 #[command]
-pub(crate) fn bare_optimize_for_memory<R: Runtime>(
+pub fn bare_optimize_for_memory<R: Runtime>(
     app: AppHandle<R>,
     payload: OptimizeForMemoryRequest,
 ) -> Result<()> {
@@ -22,7 +22,7 @@ pub(crate) fn bare_optimize_for_memory<R: Runtime>(
 }
 
 #[command]
-pub(crate) fn bare_new_worklet<R: Runtime>(
+pub fn bare_new_worklet<R: Runtime>(
     app: AppHandle<R>,
     window: WebviewWindow<R>,
     payload: NewWorkletRequest,
@@ -41,10 +41,7 @@ pub(crate) fn bare_new_worklet<R: Runtime>(
 }
 
 #[command]
-pub(crate) fn bare_start_file<R: Runtime>(
-    app: AppHandle<R>,
-    payload: StartFileRequest,
-) -> Result<()> {
+pub fn bare_start_file<R: Runtime>(app: AppHandle<R>, payload: StartFileRequest) -> Result<()> {
     app.bare_kit()
         .lock()
         .unwrap()
@@ -52,10 +49,7 @@ pub(crate) fn bare_start_file<R: Runtime>(
 }
 
 #[command]
-pub(crate) fn bare_start_utf8<R: Runtime>(
-    app: AppHandle<R>,
-    payload: StartUTF8Request,
-) -> Result<()> {
+pub fn bare_start_utf8<R: Runtime>(app: AppHandle<R>, payload: StartUTF8Request) -> Result<()> {
     app.bare_kit().lock().unwrap().start_utf8(
         payload.id,
         payload.filename,
@@ -65,10 +59,7 @@ pub(crate) fn bare_start_utf8<R: Runtime>(
 }
 
 #[command]
-pub(crate) fn bare_start_bytes<R: Runtime>(
-    app: AppHandle<R>,
-    payload: StartBytesRequest,
-) -> Result<()> {
+pub fn bare_start_bytes<R: Runtime>(app: AppHandle<R>, payload: StartBytesRequest) -> Result<()> {
     app.bare_kit().lock().unwrap().start_bytes(
         payload.id,
         payload.filename,
@@ -79,7 +70,7 @@ pub(crate) fn bare_start_bytes<R: Runtime>(
 
 #[cfg(not(target_os = "android"))]
 #[command]
-pub(crate) fn bare_read<R: Runtime>(app: AppHandle<R>, payload: ReadRequest) -> Result<Response> {
+pub fn bare_read<R: Runtime>(app: AppHandle<R>, payload: ReadRequest) -> Result<Response> {
     let data = app.bare_kit().lock().unwrap().read(payload.id).unwrap();
 
     if let Some(data) = data {
@@ -91,10 +82,7 @@ pub(crate) fn bare_read<R: Runtime>(app: AppHandle<R>, payload: ReadRequest) -> 
 
 #[cfg(target_os = "android")]
 #[command]
-pub(crate) fn bare_read<R: Runtime>(
-    app: AppHandle<R>,
-    payload: ReadRequest,
-) -> Result<Option<String>> {
+pub fn bare_read<R: Runtime>(app: AppHandle<R>, payload: ReadRequest) -> Result<Option<String>> {
     let data = app.bare_kit().lock().unwrap().read(payload.id).unwrap();
 
     if let Some(data) = data {
@@ -106,7 +94,7 @@ pub(crate) fn bare_read<R: Runtime>(
 
 #[cfg(not(target_os = "android"))]
 #[command]
-pub(crate) fn bare_write<R: Runtime>(app: AppHandle<R>, payload: Request<'_>) -> Result<i32> {
+pub fn bare_write<R: Runtime>(app: AppHandle<R>, payload: Request<'_>) -> Result<i32> {
     let InvokeBody::Raw(payload) = payload.body() else {
         return Err("Invalid payload for write request".into());
     };
@@ -123,7 +111,7 @@ pub(crate) fn bare_write<R: Runtime>(app: AppHandle<R>, payload: Request<'_>) ->
 
 #[cfg(target_os = "android")]
 #[command]
-pub(crate) fn bare_write<R: Runtime>(app: AppHandle<R>, payload: String) -> Result<i32> {
+pub fn bare_write<R: Runtime>(app: AppHandle<R>, payload: String) -> Result<i32> {
     let payload = BASE64_STANDARD.decode(payload)?;
     let id = payload[0];
 
@@ -136,7 +124,7 @@ pub(crate) fn bare_write<R: Runtime>(app: AppHandle<R>, payload: String) -> Resu
 }
 
 #[command]
-pub(crate) fn bare_update<R: Runtime>(app: AppHandle<R>, payload: UpdateRequest) -> Result<()> {
+pub fn bare_update<R: Runtime>(app: AppHandle<R>, payload: UpdateRequest) -> Result<()> {
     app.bare_kit()
         .lock()
         .unwrap()
@@ -144,7 +132,7 @@ pub(crate) fn bare_update<R: Runtime>(app: AppHandle<R>, payload: UpdateRequest)
 }
 
 #[command]
-pub(crate) fn bare_suspend<R: Runtime>(app: AppHandle<R>, payload: SuspendRequest) -> Result<()> {
+pub fn bare_suspend<R: Runtime>(app: AppHandle<R>, payload: SuspendRequest) -> Result<()> {
     app.bare_kit()
         .lock()
         .unwrap()
@@ -152,12 +140,12 @@ pub(crate) fn bare_suspend<R: Runtime>(app: AppHandle<R>, payload: SuspendReques
 }
 
 #[command]
-pub(crate) fn bare_resume<R: Runtime>(app: AppHandle<R>, payload: ResumeRequest) -> Result<()> {
+pub fn bare_resume<R: Runtime>(app: AppHandle<R>, payload: ResumeRequest) -> Result<()> {
     app.bare_kit().lock().unwrap().resume(payload.id)
 }
 
 #[command]
-pub(crate) fn bare_wakeup<R: Runtime>(app: AppHandle<R>, payload: WakeupRequest) -> Result<()> {
+pub fn bare_wakeup<R: Runtime>(app: AppHandle<R>, payload: WakeupRequest) -> Result<()> {
     app.bare_kit()
         .lock()
         .unwrap()
@@ -165,9 +153,6 @@ pub(crate) fn bare_wakeup<R: Runtime>(app: AppHandle<R>, payload: WakeupRequest)
 }
 
 #[command]
-pub(crate) fn bare_terminate<R: Runtime>(
-    app: AppHandle<R>,
-    payload: TerminateRequest,
-) -> Result<()> {
+pub fn bare_terminate<R: Runtime>(app: AppHandle<R>, payload: TerminateRequest) -> Result<()> {
     app.bare_kit().lock().unwrap().terminate(payload.id)
 }

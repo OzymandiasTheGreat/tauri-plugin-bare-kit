@@ -321,6 +321,12 @@ fn build_for_macos<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>) {
     );
 
     println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
+
+    if cfg!(feature = "tests") {
+        println!("cargo::rustc-link-arg=-Wl,-rpath,{}", dest.display());
+        println!("cargo::rustc-link-search=framework={}", dest.display());
+        println!("cargo::rustc-link-lib=framework=BareKit");
+    }
 }
 
 fn build_for_linux<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>) {

@@ -76,19 +76,21 @@ pub(crate) fn ipc_poll_get_ipc(poll: *mut bare_ipc_poll_t) -> *mut bare_ipc_t {
     unsafe { bare_ipc_poll_get_ipc(poll) }
 }
 
-pub(crate) fn ipc_poll_start<F>(poll: *mut bare_ipc_poll_t, events: i32, callback: F) -> i32
+pub(crate) fn ipc_poll_start<F>(poll: *mut bare_ipc_poll_t, events: i32, callback: F)
 where
     F: FnMut(bool, bool) + 'static,
 {
     let callback = Box::new(PollCallback(Box::new(callback)));
-    unsafe {
+    let err = unsafe {
         bare_ipc_poll_set_data(poll, Box::into_raw(callback) as *mut c_void);
         bare_ipc_poll_start(poll, events, Some(on_poll))
-    }
+    };
+    assert!(err == 0);
 }
 
-pub(crate) fn ipc_poll_stop(poll: *mut bare_ipc_poll_t) -> i32 {
-    unsafe { bare_ipc_poll_stop(poll) }
+pub(crate) fn ipc_poll_stop(poll: *mut bare_ipc_poll_t) {
+    let err = unsafe { bare_ipc_poll_stop(poll) };
+    assert!(err == 0);
 }
 
 unsafe extern "C" fn on_poll(poll: *mut bare_ipc_poll_t, events: i32) {

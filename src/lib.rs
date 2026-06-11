@@ -1,8 +1,8 @@
 #[cfg(feature = "build")]
-pub mod build;
+mod build;
 
 #[cfg(feature = "runtime")]
-pub mod runtime;
+mod runtime;
 
 #[cfg(feature = "build")]
 pub use crate::build::*;

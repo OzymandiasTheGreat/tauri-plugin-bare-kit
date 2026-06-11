@@ -10,8 +10,8 @@ use crate::runtime::bare_kit::ffi::ALooper_forThread;
 #[cfg(target_os = "android")]
 use crate::runtime::plugin::worklet::Looper;
 
-pub(crate) mod commands;
-pub(crate) mod models;
+pub mod commands;
+pub mod models;
 mod worklet;
 
 pub struct BareKit<R: Runtime> {

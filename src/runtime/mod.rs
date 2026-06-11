@@ -6,13 +6,12 @@ use tauri::{
 };
 
 pub use error::{Error, Result};
-pub use plugin::models::*;
+pub use plugin::{commands, models};
 
-use plugin::{commands, BareKit};
+use plugin::BareKit;
 
 pub mod bare_kit;
-pub mod error;
-
+mod error;
 mod plugin;
 
 /// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the bare-kit APIs.
