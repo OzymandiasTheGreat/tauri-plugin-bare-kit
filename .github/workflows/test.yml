@@ -1,0 +1,70 @@
+name: Run Tests
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desktop-tests:
+    name: Desktop Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          packages: libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xvfb
+          version: '1.0'
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            .
+            tests/src-tauri
+
+      - name: Run unit tests
+        run: cargo test --features tests
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: 'tests/package-lock.json'
+
+      - name: Install plugin dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install test app dependencies
+        working-directory: tests
+        run: npm ci --ignore-scripts
+
+      - name: Build test Tauri app
+        working-directory: tests
+        run: npm run tauri build
+
+      - name: Run tests (macOS)
+        if: matrix.os == 'macos-latest'
+        working-directory: tests
+        run: npm test
+
+      - name: Run tests (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        working-directory: tests
+        run: xvfb-run -a npm test
+
+      - name: Run tests (Windows)
+        if: matrix.os == 'windows-latest'
+        working-directory: tests
+        run: npm test
