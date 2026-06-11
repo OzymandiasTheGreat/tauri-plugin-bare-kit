@@ -39,7 +39,7 @@ jobs:
             tests/src-tauri
 
       - name: Run unit tests
-        run: cargo test --features tests
+        run: cargo test --release --features tests
 
       - uses: actions/setup-node@v6
         with:
