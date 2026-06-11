@@ -391,7 +391,13 @@ fn build_for_linux<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>) {
     );
 
     println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
-    println!("cargo::rustc-link-arg=-Wl,-rpath=$ORIGIN");
+
+    if cfg!(feature = "tests") {
+        println!("cargo::rustc-link-arg=-Wl,-rpath={}", dest.display());
+    } else {
+        println!("cargo::rustc-link-arg=-Wl,-rpath=$ORIGIN");
+    }
+
     println!("cargo::rustc-link-search=native={}", dest.display());
     println!("cargo::rustc-link-lib=bare-kit");
 }
@@ -458,8 +464,16 @@ fn build_for_windows<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>) {
     );
 
     println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
-    println!("cargo::rustc-link-search=native={}", dest.display());
+    println!("cargo::rustc-link-search=native={}\\lib", dest.display());
     println!("cargo::rustc-link-lib=dylib=bare-kit");
+
+    if cfg!(feature = "tests") {
+        fs::copy(
+            dest.join("bin/bare-kit.dll"),
+            src.join("target/release/bare-kit.dll"),
+        )
+        .unwrap();
+    }
 }
 
 fn generate_bindings<S: AsRef<Path>, O: AsRef<Path>>(src: &S, out: &O) {
