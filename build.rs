@@ -405,6 +405,7 @@ fn build_for_linux<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>) {
 fn build_for_windows<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>) {
     let src = src.as_ref();
     let out = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let profile = env::var("PROFILE").unwrap();
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
     let arch = match &*arch {
         "aarch64" => "arm64",
@@ -464,13 +465,13 @@ fn build_for_windows<P: AsRef<Path>>(src: &P, extra_args: Vec<&str>) {
     );
 
     println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
-    println!("cargo::rustc-link-search=native={}\\lib", dest.display());
+    println!("cargo::rustc-link-search=native={}", dest.display());
     println!("cargo::rustc-link-lib=dylib=bare-kit");
 
     if cfg!(feature = "tests") {
         fs::copy(
-            dest.join("bin/bare-kit.dll"),
-            src.join("target/release/bare-kit.dll"),
+            dest.join("bare-kit.dll"),
+            src.join(format!("target/{profile}/bare-kit.dll")),
         )
         .unwrap();
     }

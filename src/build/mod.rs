@@ -34,7 +34,7 @@ pub fn autolink() {
     }
 
     if platform == "windows" {
-        println!("cargo::rustc-link-search=native={resource_dir}\\lib");
+        println!("cargo::rustc-link-search=native={resource_dir}");
         println!("cargo::rustc-link-lib=dylib=bare-kit");
     }
 
