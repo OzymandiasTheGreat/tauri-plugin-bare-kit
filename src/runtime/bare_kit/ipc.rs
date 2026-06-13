@@ -40,7 +40,7 @@ pub(crate) fn ipc_read(ipc: *mut bare_ipc_t) -> Option<Vec<u8>> {
     Some(unsafe { slice::from_raw_parts(data as *mut u8, len).to_vec() })
 }
 
-pub(crate) fn ipc_write(ipc: *mut bare_ipc_t, data: Option<Vec<u8>>) -> i32 {
+pub(crate) fn ipc_write(ipc: *mut bare_ipc_t, data: Option<&Vec<u8>>) -> i32 {
     let err = match data {
         Some(data) => unsafe { bare_ipc_write(ipc, data.as_ptr() as *const _, data.len()) },
         None => unsafe { bare_ipc_write(ipc, null_mut(), 0) },
@@ -80,16 +80,25 @@ pub(crate) fn ipc_poll_start<F>(poll: *mut bare_ipc_poll_t, events: i32, callbac
 where
     F: FnMut(bool, bool) + 'static,
 {
-    let callback = Box::new(PollCallback(Box::new(callback)));
     let err = unsafe {
-        bare_ipc_poll_set_data(poll, Box::into_raw(callback) as *mut c_void);
+        let data = Box::new(PollCallback(Box::new(callback)));
+
+        bare_ipc_poll_set_data(poll, Box::into_raw(data) as *mut c_void);
         bare_ipc_poll_start(poll, events, Some(on_poll))
     };
     assert!(err == 0);
 }
 
 pub(crate) fn ipc_poll_stop(poll: *mut bare_ipc_poll_t) {
-    let err = unsafe { bare_ipc_poll_stop(poll) };
+    let err = unsafe {
+        let data = bare_ipc_poll_get_data(poll) as *mut PollCallback;
+
+        if !data.is_null() {
+            drop(Box::from_raw(data));
+        }
+
+        bare_ipc_poll_stop(poll)
+    };
     assert!(err == 0);
 }
 
@@ -101,6 +110,6 @@ unsafe extern "C" fn on_poll(poll: *mut bare_ipc_poll_t, events: i32) {
         let readable = (events & bare_ipc_readable as i32) != 0;
         let writable = (events & bare_ipc_writable as i32) != 0;
 
-        (callback.0)(readable, writable);
+        callback.0(readable, writable);
     }
 }

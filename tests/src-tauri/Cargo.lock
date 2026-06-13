@@ -3764,6 +3764,7 @@ version = "0.2.1"
 dependencies = [
  "base64 0.22.1",
  "bindgen",
+ "parking_lot",
  "serde",
  "serde_json",
  "tauri",

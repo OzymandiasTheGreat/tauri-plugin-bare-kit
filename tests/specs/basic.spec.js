@@ -61,28 +61,33 @@ describe("bare-kit", () => {
 
   it("ipc large write", async () => {
     const result = await browser.executeAsync(async (done) => {
-      const { b4a, BareKit } = window
+      const { b4a, BareKit, Deferred } = window
 
+      const deferred = new Deferred()
       const payload = b4a.alloc(4_194_304, 13)
       const received = []
 
       const worklet = await BareKit.Worklet.init()
       const IPC = worklet.IPC
 
-      IPC.on("error", () => done(false))
-      IPC.on("data", (data) => received.push(data))
+      IPC.on("error", deferred.reject)
+      IPC.on("data", (data) => {
+        received.push(data)
+
+        if (b4a.concat(received).byteLength >= payload.byteLength) {
+          deferred.resolve()
+        }
+      })
 
       await worklet.start(
         "/app.js",
         `BareKit.IPC.on("data", (data) => BareKit.IPC.write(data))`,
       )
       IPC.write(payload)
-      await new Promise((resolve) => setTimeout(resolve, 3_000))
+      await deferred.promise
       await worklet.terminate()
 
-      const data = b4a.concat(received)
-
-      done(b4a.equals(data, payload))
+      done(b4a.equals(b4a.concat(received), payload))
     })
 
     expect(result).toBe(true)

@@ -4,10 +4,6 @@ const b4a = require("b4a")
 
 const PLATFORM = window.__TAURI_BARE_KIT_PLUGIN_INTERNALS__.platform
 
-async function notify(id) {
-  if (PLATFORM !== "android") emit(`bare-kit:worklet:${id}`)
-}
-
 async function optimizeForMemory(enabled) {
   return invoke(format("bare_optimize_for_memory"), { payload: { enabled } })
 }
@@ -101,7 +97,6 @@ function format(fn) {
 }
 
 module.exports = {
-  notify,
   optimizeForMemory,
   newWorklet,
   startFile,

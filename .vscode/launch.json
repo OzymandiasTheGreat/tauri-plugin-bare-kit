@@ -4,11 +4,37 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Tauri Development Debug",
+      "name": "Unit Tests Development",
+      "cargo": {
+        "args": [
+          "test",
+          "--features",
+          "tests"
+        ]
+      }
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Unit Tests Production",
+      "cargo": {
+        "args": [
+          "test",
+          "--release",
+          "--features",
+          "tests"
+        ]
+      }
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "E2E Tests Development",
       "cargo": {
         "args": [
           "build",
-          "--manifest-path=./example/src-tauri/Cargo.toml",
+          "--manifest-path=./tests/src-tauri/Cargo.toml",
+          "--target-dir=./target",
           "--no-default-features"
         ]
       }
@@ -16,9 +42,14 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Tauri Production Debug",
+      "name": "E2E Tests Production",
       "cargo": {
-        "args": ["build", "--release", "--manifest-path=./example/src-tauri/Cargo.toml"]
+        "args": [
+          "build",
+          "--release",
+          "--manifest-path=./tests/src-tauri/Cargo.toml",
+          "--target-dir=./target"
+        ]
       }
     }
   ]

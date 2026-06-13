@@ -2,7 +2,7 @@ use std::ptr::null_mut;
 use std::sync::Arc;
 
 use tauri::async_runtime::block_on;
-use tauri::{AppHandle, Listener, Runtime, WebviewWindow};
+use tauri::{AppHandle, Runtime, WebviewWindow};
 use tokio::sync::Notify;
 
 use crate::runtime::bare_kit::ffi::{
@@ -162,7 +162,7 @@ impl<R: Runtime> BareKitWorklet<R> {
     }
 
     pub(crate) fn write(&mut self, data: Option<Vec<u8>>) -> i32 {
-        ipc_write(self.ipc, data)
+        ipc_write(self.ipc, data.as_ref())
     }
 
     pub(crate) fn update(&mut self, readable: bool, writable: bool) {
@@ -183,38 +183,23 @@ impl<R: Runtime> BareKitWorklet<R> {
         if events > 0 {
             let worklet = self.clone();
 
-            #[cfg(not(target_os = "android"))]
             ipc_poll_start(self.poll, events as i32, move |readable, writable| {
                 let notify = Arc::new(Notify::new());
                 let notifier = notify.clone();
                 let notified = notify.notified();
 
-                worklet
-                    .app
-                    .once(format!("bare-kit:worklet:{}", worklet.id), move |_| {
-                        notifier.notify_waiters()
-                    });
-
                 worklet.window
-                    .eval(format!(
+                    .eval_with_callback(format!(
                         "window.__TAURI_INTERNALS__.runCallback({}, {{ readable: {}, writable: {} }})",
                         worklet.on_poll, readable, writable,
-                    ))
+                    ), move |_| {
+                        notifier.notify_waiters();
+                    })
                     .unwrap();
 
                 block_on(async move {
                     notified.await;
                 });
-            });
-
-            #[cfg(target_os = "android")]
-            ipc_poll_start(self.poll, events as i32, move |readable, writable| {
-                worklet.window
-                    .eval(format!(
-                        "window.__TAURI_INTERNALS__.runCallback({}, {{ readable: {}, writable: {} }})",
-                        worklet.on_poll, readable, writable,
-                    ))
-                    .unwrap();
             });
         } else {
             ipc_poll_stop(self.poll);

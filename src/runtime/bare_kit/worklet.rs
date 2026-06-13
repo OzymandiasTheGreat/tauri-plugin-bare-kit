@@ -46,8 +46,9 @@ pub(crate) fn worklet_new(memory_limit: usize, assets: Option<String>) -> *mut b
 
 pub(crate) fn worklet_destroy(worklet: *mut bare_worklet_t) {
     unsafe {
-        let _ = Box::from_raw(bare_worklet_get_data(worklet));
-
+        drop(Box::from_raw(
+            bare_worklet_get_data(worklet) as *mut WorkletCallbacks
+        ));
         bare_worklet_destroy(worklet);
     }
 }

@@ -1,4 +1,5 @@
-use std::sync::{Arc, Mutex};
+use parking_lot::ReentrantMutex;
+use std::{cell::RefCell, sync::Arc};
 
 use crate::bare_kit::{
     ffi::{bare_ipc_poll_t, bare_ipc_readable, bare_ipc_t, bare_ipc_writable, bare_worklet_t},
@@ -20,7 +21,7 @@ pub(crate) mod worklet;
 #[cfg(test)]
 mod tests;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct BareWorklet {
     worklet: *mut bare_worklet_t,
 }
@@ -103,8 +104,10 @@ pub struct BareIPC {
     ipc: *mut bare_ipc_t,
     poll: *mut bare_ipc_poll_t,
 
-    readable: Option<Arc<Mutex<dyn FnMut() + 'static>>>,
-    writable: Option<Arc<Mutex<dyn FnMut() + 'static>>>,
+    readable: Arc<ReentrantMutex<RefCell<Option<Box<dyn FnMut(Vec<u8>)>>>>>,
+    writable: Arc<ReentrantMutex<RefCell<Option<Box<dyn FnMut()>>>>>,
+
+    data: Arc<ReentrantMutex<RefCell<Option<Vec<u8>>>>>,
 }
 
 unsafe impl Send for BareIPC {}
@@ -112,67 +115,45 @@ unsafe impl Send for BareIPC {}
 unsafe impl Sync for BareIPC {}
 
 impl BareIPC {
-    pub fn init(worklet: BareWorklet) -> Self {
+    pub fn init(worklet: &BareWorklet) -> Self {
         let ipc = ipc_new(worklet.worklet);
         let poll = ipc_poll_new(ipc);
 
         Self {
             ipc,
             poll,
-            readable: None,
-            writable: None,
+            readable: Arc::new(ReentrantMutex::new(RefCell::new(None))),
+            writable: Arc::new(ReentrantMutex::new(RefCell::new(None))),
+            data: Arc::new(ReentrantMutex::new(RefCell::new(None))),
         }
     }
 
-    pub fn read<F>(self, callback: F)
+    pub fn read<F>(&self, mut callback: F)
     where
-        F: FnOnce(Vec<u8>) + 'static,
+        F: FnMut(Vec<u8>) + 'static,
     {
-        let mut callback = Some(callback);
-
         if let Some(data) = ipc_read(self.ipc) {
-            if let Some(callback) = callback.take() {
-                callback(data);
-            }
+            callback(data);
         } else {
-            self.clone().set_readable(Some(move || {
-                if let Some(data) = ipc_read(self.ipc) {
-                    self.clone().set_readable(None::<fn()>);
+            *self.readable.lock().borrow_mut() = Some(Box::new(callback));
 
-                    if let Some(callback) = callback.take() {
-                        callback(data);
-                    }
-                }
-            }));
+            self.update();
         }
     }
 
-    pub fn write<F>(self, data: Vec<u8>, callback: F)
+    pub fn write<F>(&self, data: &Vec<u8>, mut callback: F)
     where
-        F: FnOnce() + 'static,
+        F: FnMut() + 'static,
     {
-        let mut callback = Some(callback);
-        let written = ipc_write(self.ipc, Some(data.clone())) as usize;
+        let written = ipc_write(self.ipc, Some(data)) as usize;
 
         if written == data.len() {
-            if let Some(callback) = callback.take() {
-                callback();
-            }
+            callback();
         } else {
-            self.clone().set_writable(Some(move || {
-                let mut remaining = data[written..].to_vec();
-                let written = ipc_write(self.ipc, Some(remaining.clone())) as usize;
+            *self.data.lock().borrow_mut() = Some(data[written..].to_vec());
+            *self.writable.lock().borrow_mut() = Some(Box::new(callback));
 
-                if written == remaining.len() {
-                    self.clone().set_writable(None::<fn()>);
-
-                    if let Some(callback) = callback.take() {
-                        callback();
-                    }
-                } else {
-                    remaining = remaining[written..].to_vec();
-                }
-            }));
+            self.update();
         }
     }
 
@@ -181,54 +162,59 @@ impl BareIPC {
         ipc_destroy(self.ipc);
     }
 
-    fn set_readable<F>(mut self, readable: Option<F>)
-    where
-        F: FnMut() + 'static,
-    {
-        if let Some(callback) = readable {
-            self.readable = Some(Arc::new(Mutex::new(callback)));
-        } else {
-            self.readable = None;
-        }
-
-        self.update();
-    }
-
-    fn set_writable<F>(mut self, writable: Option<F>)
-    where
-        F: FnMut() + 'static,
-    {
-        if let Some(callback) = writable {
-            self.writable = Some(Arc::new(Mutex::new(callback)));
-        } else {
-            self.writable = None;
-        }
-
-        self.update();
-    }
-
-    fn update(mut self) {
+    fn update(&self) {
         let mut events = 0;
 
-        if self.readable.is_some() {
+        if self.readable.lock().borrow().is_some() {
             events |= bare_ipc_readable;
         }
 
-        if self.writable.is_some() {
+        if self.writable.lock().borrow().is_some() {
             events |= bare_ipc_writable;
         }
 
         if events > 0 {
-            ipc_poll_start(self.poll, events as i32, move |readable, writable| {
+            let this = self.clone();
+
+            ipc_poll_start(this.poll, events as i32, move |readable, writable| {
                 if readable {
-                    if let Some(callback) = &mut self.readable {
-                        callback.lock().unwrap()();
+                    if let Some(data) = ipc_read(this.ipc) {
+                        let callback_ref = this.readable.lock();
+                        let mut callback_ref = callback_ref.borrow_mut();
+                        let mut callback = callback_ref.take();
+
+                        drop(callback_ref);
+                        this.update();
+
+                        if let Some(callback) = &mut callback {
+                            callback(data);
+                        }
                     }
                 }
 
                 if writable {
-                    if let Some(callback) = &mut self.writable {
-                        callback.lock().unwrap()();
+                    let data_lock = this.data.lock();
+                    let mut data_ref = data_lock.borrow_mut();
+
+                    if let Some(data) = &*data_ref {
+                        let written = ipc_write(this.ipc, Some(data)) as usize;
+
+                        if written == data.len() {
+                            let callback_ref = this.writable.lock();
+                            let mut callback_ref = callback_ref.borrow_mut();
+                            let mut callback = callback_ref.take();
+
+                            drop(callback_ref);
+                            this.update();
+
+                            if let Some(callback) = &mut callback {
+                                *data_ref = None;
+
+                                callback();
+                            }
+                        } else {
+                            *data_ref = Some(data[written..].to_vec());
+                        }
                     }
                 }
             });

@@ -48,8 +48,6 @@ class BareKitIPC extends Duplex {
     if (this._worklet.terminated) return
     if (readable) await this._continueRead()
     if (writable) await this._continueWrite()
-
-    await NativeBareKit.notify(this._worklet._handle)
   }
 
   async _read(cb) {
