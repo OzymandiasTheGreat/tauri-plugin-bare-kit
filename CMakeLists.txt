@@ -18,7 +18,7 @@ endif()
 
 include(overrides.cmake)
 
-project(tauri_plugin_bare_kit LANGUAGES C CXX VERSION 0.2.1)
+project(tauri_plugin_bare_kit LANGUAGES C CXX VERSION 0.2.2)
 
 if(WIN32)
   # arm64 windows treats incompatible pointers as error
@@ -26,7 +26,7 @@ if(WIN32)
   add_compile_options("-Wno-incompatible-pointer-types")
 endif()
 
-fetch_package("github:holepunchto/bare-kit@2.1.2")
+fetch_package("github:holepunchto/bare-kit@2.2.1")
 
 # Allow installing fetched target
 set_target_properties(
