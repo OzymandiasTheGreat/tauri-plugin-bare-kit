@@ -47,9 +47,7 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
-          cache-dependency-path: |
-            'package-lock.json'
-            'tests/package-lock.json'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Run unit tests
         run: cargo test --release --features tests
