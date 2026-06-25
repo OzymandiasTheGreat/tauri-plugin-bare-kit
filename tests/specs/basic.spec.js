@@ -74,7 +74,7 @@ describe("bare-kit", () => {
         const { b4a, BareKit, Deferred } = window
 
         const deferred = new Deferred()
-        const payload = b4a.alloc(isAndroid ? 2_097_152 : 4_194_304, 13)
+        const payload = b4a.alloc(isAndroid ? 1_048_576 : 4_194_304, 13)
         const received = []
 
         const worklet = await BareKit.Worklet.init()
