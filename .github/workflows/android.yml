@@ -57,6 +57,6 @@ jobs:
           ndk: 27.2.12479018
           arch: x86_64
           target: google_apis
-          disk-size: 3072M
+          disk-size: 512M
           working-directory: tests
           script: ./test-android.sh
