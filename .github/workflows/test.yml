@@ -90,6 +90,11 @@ jobs:
             sudo udevadm control --reload-rules
             sudo udevadm trigger --name-match=kvm
 
+        - uses: awalsh128/cache-apt-pkgs-action@latest
+          with:
+            packages: libwebkit2gtk-4.1-dev librsvg2-dev
+            version: '1.0'
+
         - uses: ZhongRuoyu/setup-llvm@v0
           with:
             llvm-version: 22
