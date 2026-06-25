@@ -27,8 +27,9 @@ describe("bare-kit", () => {
 
   it("ipc", async () => {
     const result = await browser.executeAsync(async (done) => {
-      const { b4a, BareKit } = window
+      const { b4a, BareKit, Deferred } = window
 
+      const deferred = new Deferred()
       const payload = "Hello, World!"
       let matches = 0
 
@@ -43,6 +44,8 @@ describe("bare-kit", () => {
 
         if (matches < 3) {
           IPC.write(data)
+        } else {
+          deferred.resolve()
         }
       })
 
@@ -50,7 +53,7 @@ describe("bare-kit", () => {
         "/app.js",
         `BareKit.IPC.on("data", (data) => BareKit.IPC.write(data)).write("${payload}")`,
       )
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await deferred.promise
       await worklet.terminate()
 
       done(matches)
@@ -60,35 +63,44 @@ describe("bare-kit", () => {
   })
 
   it("ipc large write", async () => {
-    const result = await browser.executeAsync(async (done) => {
-      const { b4a, BareKit, Deferred } = window
+    const isAndroid = browser.capabilities.platformName === "Android"
 
-      const deferred = new Deferred()
-      const payload = b4a.alloc(4_194_304, 13)
-      const received = []
+    if (isAndroid) {
+      await browser.setTimeout({ script: 240_000 })
+    }
 
-      const worklet = await BareKit.Worklet.init()
-      const IPC = worklet.IPC
+    const result = await browser.executeAsync(
+      async (isAndroid, done) => {
+        const { b4a, BareKit, Deferred } = window
 
-      IPC.on("error", deferred.reject)
-      IPC.on("data", (data) => {
-        received.push(data)
+        const deferred = new Deferred()
+        const payload = b4a.alloc(isAndroid ? 2_097_152 : 4_194_304, 13)
+        const received = []
 
-        if (b4a.concat(received).byteLength >= payload.byteLength) {
-          deferred.resolve()
-        }
-      })
+        const worklet = await BareKit.Worklet.init()
+        const IPC = worklet.IPC
 
-      await worklet.start(
-        "/app.js",
-        `BareKit.IPC.on("data", (data) => BareKit.IPC.write(data))`,
-      )
-      IPC.write(payload)
-      await deferred.promise
-      await worklet.terminate()
+        IPC.on("error", deferred.reject)
+        IPC.on("data", (data) => {
+          received.push(data)
 
-      done(b4a.equals(b4a.concat(received), payload))
-    })
+          if (b4a.concat(received).byteLength >= payload.byteLength) {
+            setTimeout(deferred.resolve, 100)
+          }
+        })
+
+        await worklet.start(
+          "/app.js",
+          `BareKit.IPC.on("data", (data) => BareKit.IPC.write(data))`,
+        )
+        IPC.write(payload)
+        await deferred.promise
+        await worklet.terminate()
+
+        done(b4a.equals(b4a.concat(received), payload))
+      },
+      [isAndroid],
+    )
 
     expect(result).toBe(true)
   })

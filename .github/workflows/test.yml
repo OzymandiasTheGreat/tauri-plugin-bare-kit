@@ -77,3 +77,55 @@ jobs:
         if: matrix.os == 'windows-latest'
         working-directory: tests
         run: npm test
+
+  android-tests:
+      name: Android Tests
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v6
+
+        - name: Enable KVM
+          run: |
+            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+            sudo udevadm control --reload-rules
+            sudo udevadm trigger --name-match=kvm
+
+        - uses: ZhongRuoyu/setup-llvm@v0
+          with:
+            llvm-version: 22
+
+        - uses: dtolnay/rust-toolchain@stable
+
+        - uses: Swatinem/rust-cache@v2
+          with:
+            workspaces: tests/src-tauri
+
+        - uses: actions/setup-node@v6
+          with:
+            node-version: 24
+            cache: 'npm'
+            cache-dependency-path: 'package-lock.json'
+
+        - name: Install plugin dependencies
+          run: npm ci --ignore-scripts
+
+        - name: Install test app dependencies
+          working-directory: tests
+          run: npm ci --ignore-scripts
+
+        - name: run tests
+          uses: reactivecircus/android-emulator-runner@v2
+          with:
+            api-level: 36
+            ndk: 27.2.12479018
+            arch: x86_64
+            target: google_apis
+            working-directory: tests
+            script: |
+              npm run tauri android build -- --debug --ci --apk --target x86_64
+              npx appium --allow-insecure "*:chromedriver_autodownload" &
+              APPIUM_PID=$!
+              npm run test:android
+              EXIT_CODE=$?
+              kill $APPIUM_PID
+              exit $EXIT_CODE

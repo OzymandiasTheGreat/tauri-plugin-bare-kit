@@ -86,7 +86,7 @@ pub fn bare_read<R: Runtime>(app: AppHandle<R>, payload: ReadRequest) -> Result<
     let data = app.bare_kit().lock().unwrap().read(payload.id).unwrap();
 
     if let Some(data) = data {
-        Ok(BASE64_STANDARD.encode(data))
+        Ok(Some(BASE64_STANDARD.encode(data)))
     } else {
         Ok(None)
     }

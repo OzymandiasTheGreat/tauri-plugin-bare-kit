@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">"tauri-plugin-bare-kit-tests"</string>
+    <string name="main_activity_title">"tauri-plugin-bare-kit-tests"</string>
+</resources>

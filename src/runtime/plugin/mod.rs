@@ -29,7 +29,7 @@ impl<R: Runtime> BareKit<R> {
         Ok(Self {
             id: 0,
             #[cfg(target_os = "android")]
-            looper: Looper(ALooper_forThread()),
+            looper: Looper(unsafe { ALooper_forThread() }),
             worklets: HashMap::new(),
         })
     }
@@ -91,7 +91,7 @@ impl<R: Runtime> BareKit<R> {
             worklet.start(filename, None, args);
 
             #[cfg(target_os = "android")]
-            worklet.set_looper(self.looper);
+            worklet.set_looper(&self.looper);
 
             Ok(())
         } else {
@@ -112,7 +112,7 @@ impl<R: Runtime> BareKit<R> {
             worklet.start(filename, Some(source), args);
 
             #[cfg(target_os = "android")]
-            worklet.set_looper(self.looper);
+            worklet.set_looper(&self.looper);
 
             Ok(())
         } else {
@@ -131,7 +131,7 @@ impl<R: Runtime> BareKit<R> {
             worklet.start(filename, Some(source), args);
 
             #[cfg(target_os = "android")]
-            worklet.set_looper(self.looper);
+            worklet.set_looper(&self.looper);
 
             Ok(())
         } else {

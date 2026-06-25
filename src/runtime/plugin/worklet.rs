@@ -1,8 +1,11 @@
 use std::ptr::null_mut;
-use std::sync::Arc;
-
-use tauri::async_runtime::block_on;
 use tauri::{AppHandle, Runtime, WebviewWindow};
+
+#[cfg(not(target_os = "android"))]
+use std::sync::Arc;
+#[cfg(not(target_os = "android"))]
+use tauri::async_runtime::block_on;
+#[cfg(not(target_os = "android"))]
 use tokio::sync::Notify;
 
 use crate::runtime::bare_kit::ffi::{
@@ -15,7 +18,7 @@ use crate::runtime::bare_kit::worklet::*;
 use crate::runtime::bare_kit::ffi::{ALooper, ALooper_acquire, ALooper_release};
 
 #[cfg(target_os = "android")]
-pub(crate) struct Looper(*mut ALooper);
+pub(crate) struct Looper(pub(crate) *mut ALooper);
 
 #[cfg(target_os = "android")]
 unsafe impl Send for Looper {}
@@ -184,11 +187,23 @@ impl<R: Runtime> BareKitWorklet<R> {
             let worklet = self.clone();
 
             ipc_poll_start(self.poll, events as i32, move |readable, writable| {
-                let notify = Arc::new(Notify::new());
-                let notifier = notify.clone();
-                let notified = notify.notified();
+                #[cfg(target_os = "android")]
+                {
+                    worklet.window
+                    .eval(format!(
+                        "window.__TAURI_INTERNALS__.runCallback({}, {{ readable: {}, writable: {} }})",
+                        worklet.on_poll, readable, writable,
+                    ))
+                    .unwrap();
+                }
 
-                worklet.window
+                #[cfg(not(target_os = "android"))]
+                {
+                    let notify = Arc::new(Notify::new());
+                    let notifier = notify.clone();
+                    let notified = notify.notified();
+
+                    worklet.window
                     .eval_with_callback(format!(
                         "window.__TAURI_INTERNALS__.runCallback({}, {{ readable: {}, writable: {} }})",
                         worklet.on_poll, readable, writable,
@@ -197,9 +212,10 @@ impl<R: Runtime> BareKitWorklet<R> {
                     })
                     .unwrap();
 
-                block_on(async move {
-                    notified.await;
-                });
+                    block_on(async move {
+                        notified.await;
+                    });
+                }
             });
         } else {
             ipc_poll_stop(self.poll);
