@@ -57,7 +57,7 @@ jobs:
           ndk: 27.2.12479018
           arch: x86_64
           target: google_apis
-          disk-size: 5120M
+          disk-size: 3072M
           working-directory: tests
           script: |
             npm run tauri android build -- --debug --ci --apk --target x86_64
