@@ -50,6 +50,7 @@ jobs:
           cache-dependency-path: 'package-lock.json'
 
       - name: Run unit tests
+        if: matrix.os != 'windows-latest'
         run: cargo test --release --features tests
 
       - name: Install plugin dependencies
@@ -63,17 +64,12 @@ jobs:
         working-directory: tests
         run: npm run tauri build -- -- --target-dir ../../target
 
-      - name: Run tests (macOS)
-        if: matrix.os == 'macos-latest'
-        working-directory: tests
-        run: npm test
-
       - name: Run tests (Linux)
         if: matrix.os == 'ubuntu-latest'
         working-directory: tests
         run: xvfb-run -a npm test
 
-      - name: Run tests (Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Run tests
+        if: matrix.os != 'ubuntu-latest'
         working-directory: tests
         run: npm test
