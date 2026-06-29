@@ -8,7 +8,8 @@
     "build": "vite build",
     "tauri": "tauri",
     "test": "wdio run ./wdio.conf.js",
-    "test:android": "wdio run ./wdio.android.conf.js"
+    "test:android": "wdio run ./wdio.android.conf.js",
+    "test:ios": "wdio run ./wdio.ios.conf.js"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

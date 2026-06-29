@@ -1,0 +1,48 @@
+name: iOS Tests
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios-tests:
+    name: iOS Tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ZhongRuoyu/setup-llvm@v0
+        with:
+          llvm-version: 22
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tests/src-tauri
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: 'tests/package-lock.json'
+
+      - name: Install plugin dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install test app dependencies
+        working-directory: tests
+        run: npm ci --ignore-scripts
+
+      - name: Build test Tauri app
+        working-directory: tests
+        run: npm run tauri ios build -- --ci --target aarch64-sim
+
+      - name: Run tests
+        working-directory: tests
+        run: npm run test:ios
