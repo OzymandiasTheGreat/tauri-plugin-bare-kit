@@ -91,11 +91,9 @@ function getDevice() {
 
   const json = JSON.parse(result.output.join(""))
 
-  for (const version of Object.values(json.devices)) {
-    for (const device of version) {
-      if (device.name === "iPhone 17") {
-        return device.udid
-      }
+  for (const device of json.devices["com.apple.CoreSimulator.SimRuntime.iOS-26-5"]) {
+    if (device.name === "iPhone 17") {
+      return device.udid
     }
   }
 
