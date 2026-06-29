@@ -18,7 +18,7 @@ endif()
 
 include(overrides.cmake)
 
-project(tauri_plugin_bare_kit LANGUAGES C CXX VERSION 0.2.2)
+project(tauri_plugin_bare_kit LANGUAGES C CXX VERSION 0.2.3)
 
 if(IOS)
   # bare-make hardcodes min iOS version to 14 which is no longer
