@@ -32,7 +32,7 @@ if(WIN32)
   add_compile_options("-Wno-incompatible-pointer-types")
 endif()
 
-fetch_package("github:holepunchto/bare-kit@2.2.1")
+fetch_package("github:holepunchto/bare-kit@2.3.0")
 
 # Allow installing fetched target
 set_target_properties(
