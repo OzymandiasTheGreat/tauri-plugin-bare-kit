@@ -76,7 +76,7 @@ jobs:
 
   ios-tests:
     name: iOS Tests
-    runs-on: macos-latest
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v6
 
