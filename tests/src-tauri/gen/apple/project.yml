@@ -2,7 +2,7 @@ name: tauri-plugin-bare-kit-tests
 options:
   bundleIdPrefix: me.tomasrav.tauri-plugin-bare-kit-tests
   deploymentTarget:
-    iOS: 14
+    iOS: 16
 fileGroups:
   - ../../src
 configs:
