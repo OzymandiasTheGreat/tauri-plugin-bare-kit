@@ -11,9 +11,7 @@
 		3D8811957C42163E1D70985E /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A826E26F0FCE00F04EEED326 /* Metal.framework */; };
 		3DCEFC5AC82744B9F153F369 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1927FEF62600BFB81FF2030E /* LaunchScreen.storyboard */; };
 		43EE001320B70256E2D67F86 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E1CBC5717F715E9E4594165 /* Security.framework */; };
-		51A1627C347B505A614EE04E /* libapp.a in Resources */ = {isa = PBXBuildFile; fileRef = F4FB316C17F8B1D3917F0521 /* libapp.a */; };
 		51A94F89EDC5C457D30B0B7F /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 111D308295DB3D933F26A015 /* WebKit.framework */; };
-		698EE4AFBC2DF953C20586E3 /* BareKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 33646B96C1B4A41B1C792E4A /* BareKit.framework */; };
 		7812560C56BDAF7AD4A72A2F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B251C5C8D661FF6B4A7B7A13 /* Assets.xcassets */; };
 		7C2567ADCAE8B4003F2170EC /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2947FC31A32E1B17034F4574 /* main.mm */; };
 		8CD3F600A552741C96AA83D6 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3CE2C51A813DFD97FB0A1BF /* QuartzCore.framework */; };
@@ -33,7 +31,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				F816EBBD9DE130A245713DDC /* BareKit.framework in Embed Frameworks */,
-				698EE4AFBC2DF953C20586E3 /* BareKit.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -47,7 +44,6 @@
 		1E1CBC5717F715E9E4594165 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		2453766B12CF80326E9F642C /* tauri-plugin-bare-kit-tests_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "tauri-plugin-bare-kit-tests_iOS.entitlements"; sourceTree = "<group>"; };
 		2947FC31A32E1B17034F4574 /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
-		33646B96C1B4A41B1C792E4A /* BareKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = BareKit.framework; sourceTree = "<group>"; };
 		35F43E0CC2EC0DC9CC711CEA /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		3910710EC619576C63978EBB /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
 		3CDBD328DC7D7A36CB4FA3BA /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
@@ -61,7 +57,6 @@
 		E862FBA4632573BC0EE244DA /* tauri-plugin-bare-kit-tests_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "tauri-plugin-bare-kit-tests_iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9570C8E97BA140C0E510C76 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		F23FE4CE13436974586AD576 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		F4FB316C17F8B1D3917F0521 /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,14 +85,6 @@
 				E862FBA4632573BC0EE244DA /* tauri-plugin-bare-kit-tests_iOS.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		1835FF706AE038E77601ECCE /* arm64 */ = {
-			isa = PBXGroup;
-			children = (
-				8B120C48F6698788E075ED57 /* release */,
-			);
-			path = arm64;
 			sourceTree = "<group>";
 		};
 		2FA9DD9638AD94280516D187 /* Sources */ = {
@@ -140,15 +127,6 @@
 			path = "tauri-plugin-bare-kit-tests_iOS";
 			sourceTree = "<group>";
 		};
-		8B120C48F6698788E075ED57 /* release */ = {
-			isa = PBXGroup;
-			children = (
-				33646B96C1B4A41B1C792E4A /* BareKit.framework */,
-				F4FB316C17F8B1D3917F0521 /* libapp.a */,
-			);
-			path = release;
-			sourceTree = "<group>";
-		};
 		8BD8AC97BB4A01055D7FDB53 /* src */ = {
 			isa = PBXGroup;
 			children = (
@@ -162,7 +140,6 @@
 		A27CDFFDF226B256219DAED0 /* Externals */ = {
 			isa = PBXGroup;
 			children = (
-				1835FF706AE038E77601ECCE /* arm64 */,
 			);
 			path = Externals;
 			sourceTree = "<group>";
@@ -190,13 +167,6 @@
 				38DCCDD9D67956B8BBBDCA3E /* bindings */,
 			);
 			path = "tauri-plugin-bare-kit-tests";
-			sourceTree = "<group>";
-		};
-		"TEMP_C4C356FB-1180-464D-9A26-9C3A9C017EB7" /* x86_64 */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = x86_64;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -261,7 +231,6 @@
 				7812560C56BDAF7AD4A72A2F /* Assets.xcassets in Resources */,
 				3DCEFC5AC82744B9F153F369 /* LaunchScreen.storyboard in Resources */,
 				1406EB880490AB930520EF3E /* assets in Resources */,
-				51A1627C347B505A614EE04E /* libapp.a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
