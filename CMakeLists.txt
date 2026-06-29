@@ -23,7 +23,7 @@ project(tauri_plugin_bare_kit LANGUAGES C CXX VERSION 0.2.2)
 if(IOS)
   # bare-make hardcodes min iOS version to 14 which is no longer
   # supported by libc++, treat it as regular warning
-  add_compile_definitions("-Wno-error=#warnings")
+  add_compile_options("-Wno-error=#warnings")
 endif()
 
 if(WIN32)
