@@ -68,6 +68,7 @@
     "cmake-bare": "^1.8.0",
     "cmake-bare-bundle": "^3.0.0",
     "cmake-fetch": "^1.5.1",
+    "cmake-java": "^0.1.2",
     "semver": "^7.8.1",
     "yaml": "^2.9.0"
   }

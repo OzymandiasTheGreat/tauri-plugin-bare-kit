@@ -11,6 +11,7 @@ jobs:
   android-tests:
     name: Android Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -20,10 +21,8 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-          version: '1.0'
+      - name: Install apt dependencies
+        run: sudo apt update && sudo apt install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev
 
       - uses: ZhongRuoyu/setup-llvm@v0
         with:
@@ -59,4 +58,7 @@ jobs:
           target: google_apis
           disk-size: 512M
           working-directory: tests
-          script: ./test-android.sh
+          script: >-
+            ./test-android.sh; EXIT_CODE=$?;
+            timeout 20 adb logcat -d > /tmp/UITests.Android.logcat.txt 2>/dev/null || true;
+            pkill -f -SIGKILL 'crashpad_handle[r]' 2>/dev/null || true; exit $EXIT_CODE
