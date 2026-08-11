@@ -28,6 +28,11 @@ jobs:
         with:
           llvm-version: 22
 
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-linux-android
@@ -59,6 +64,5 @@ jobs:
           disk-size: 512M
           working-directory: tests
           script: >-
-            ./test-android.sh; EXIT_CODE=$?;
-            timeout 20 adb logcat -d > /tmp/UITests.Android.logcat.txt 2>/dev/null || true;
-            pkill -f -SIGKILL 'crashpad_handle[r]' 2>/dev/null || true; exit $EXIT_CODE
+            trap '(sleep 30; while pgrep -x -f [c]rashpad_handler >/dev/null 2>&1; do pkill -9 -f [c]rashpad_handler || true; sleep 5; done) &' EXIT;
+            ./test-android.sh
