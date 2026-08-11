@@ -49,6 +49,10 @@ jobs:
         working-directory: tests
         run: npm ci --ignore-scripts
 
+      - name: Build test app
+        working-directory: tests
+        run: JAVA_HOME="$JAVA_HOME_17_X64" npm run tauri android build -- --debug --ci --apk --target x86_64
+
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -57,7 +61,8 @@ jobs:
           arch: x86_64
           target: google_apis
           disk-size: 512M
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           working-directory: tests
           script: >-
             trap '(sleep 30; while killall -9 crashpad_handler >/dev/null 2>&1; do echo "killed crashpad_handler"; sleep 5; done) &' EXIT;
-            JAVA_HOME="$JAVA_HOME_8_X64" ./test-android.sh
+            ./test-android.sh
