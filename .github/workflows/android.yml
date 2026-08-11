@@ -51,7 +51,10 @@ jobs:
 
       - name: Build test app
         working-directory: tests
-        run: JAVA_HOME="$JAVA_HOME_17_X64" npm run tauri android build -- --debug --ci --apk --target x86_64
+        run: |
+          export JAVA_HOME="$JAVA_HOME_17_X64"
+          echo "$JAVA_HOME"
+          npm run tauri android build -- --debug --ci --apk --target x86_64
 
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
