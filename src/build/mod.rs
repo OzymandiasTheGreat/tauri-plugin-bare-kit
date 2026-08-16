@@ -1,4 +1,8 @@
-use std::{env, fs, path::PathBuf, process::Command};
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 #[cfg(unix)]
 const NPX: &str = "npx";
@@ -6,8 +10,8 @@ const NPX: &str = "npx";
 const NPX: &str = "npx.cmd";
 
 pub fn autolink() {
-    let project = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-    let project = project.parent().unwrap();
+    let src = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+    let project = src.parent().unwrap();
 
     let entry = project.join("bare/app.js");
     let entry = if entry.exists() {
@@ -63,18 +67,6 @@ pub fn autolink() {
         );
     }
 
-    if platform == "android" {
-        println!("cargo::rustc-link-arg=-Wl,-rpath,$ORIGIN");
-        println!("cargo::rustc-link-search=native={resource_dir}");
-        println!("cargo::rustc-link-lib=bare-kit");
-    }
-
-    if platform == "ios" {
-        println!("cargo::rustc-link-arg=-Wl,-rpath,@executable_path/");
-        println!("cargo::rustc-link-search=framework={resource_dir}");
-        println!("cargo::rustc-link-lib=framework=BareKit");
-    }
-
     if platform == "darwin" {
         let host = format!("{platform}-{arch}");
 
@@ -86,7 +78,8 @@ pub fn autolink() {
                 "--host",
                 &*host,
                 "--out",
-                &*resource_dir
+                &*resource_dir,
+                project.to_str().unwrap(),
             ])
             .status()
             .unwrap()
@@ -127,6 +120,65 @@ pub fn autolink() {
         }
     }
 
+    if platform == "ios" {
+        let simulator = env::var("CARGO_CFG_TARGET_ENV").unwrap() == "sim";
+        let host = format!(
+            "{platform}-{arch}{}",
+            if simulator { "-simulator" } else { "" }
+        );
+        let arch = match arch {
+            "arm64" => "arm64",
+            "x64" => "x86_64",
+            _ => panic!("Unsupported architecture"),
+        };
+        let profile = env::var("PROFILE").unwrap();
+        let out = src.join(format!("gen/apple/Externals/{arch}/{profile}"));
+
+        assert!(Command::new(NPX)
+            .current_dir(project)
+            .args(vec![
+                "--yes",
+                "bare-link",
+                "--host",
+                &*host,
+                "--out",
+                out.to_str().unwrap(),
+                project.to_str().unwrap(),
+            ])
+            .status()
+            .unwrap()
+            .success());
+        assert!(Command::new(NPX)
+            .current_dir(project)
+            .args(vec![
+                "--yes",
+                "bare-pack",
+                "--host",
+                &*host,
+                "--linked",
+                "--out",
+                project.join("app.bundle.json").to_str().unwrap(),
+                entry.to_str().unwrap(),
+            ])
+            .status()
+            .unwrap()
+            .success());
+
+        copy_dir_all(
+            PathBuf::from(&*resource_dir).join("BareKit.framework"),
+            out.join("BareKit.framework"),
+        );
+
+        println!("cargo::rustc-link-search=framework={}", out.display());
+        println!("cargo::rustc-link-lib=framework=BareKit");
+    }
+
+    if platform == "android" {
+        println!("cargo::rustc-link-arg=-Wl,-rpath,$ORIGIN");
+        println!("cargo::rustc-link-search=native={resource_dir}");
+        println!("cargo::rustc-link-lib=bare-kit");
+    }
+
     if platform == "linux" {
         println!("cargo::rustc-link-arg=-Wl,-rpath=$ORIGIN");
         println!("cargo::rustc-link-search=native={resource_dir}");
@@ -136,5 +188,19 @@ pub fn autolink() {
     if platform == "win32" {
         println!("cargo::rustc-link-search=native={resource_dir}");
         println!("cargo::rustc-link-lib=dylib=bare-kit");
+    }
+}
+
+fn copy_dir_all<P: AsRef<Path>>(src: P, dest: P) {
+    fs::create_dir_all(&dest).unwrap();
+
+    for entry in fs::read_dir(src).unwrap() {
+        let entry = entry.unwrap();
+        let ftype = entry.file_type().unwrap();
+        if ftype.is_dir() {
+            copy_dir_all(entry.path(), dest.as_ref().join(entry.file_name()));
+        } else {
+            fs::copy(entry.path(), dest.as_ref().join(entry.file_name())).unwrap();
+        }
     }
 }

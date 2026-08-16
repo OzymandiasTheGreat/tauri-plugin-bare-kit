@@ -41,6 +41,16 @@ fn main() {
                 println!("cargo::rustc-link-lib=framework=BareKit");
             }
         }
+        "ios" => {
+            let simulator = env::var("CARGO_CFG_TARGET_ENV").unwrap() == "sim";
+            let prefix = if simulator {
+                "ios/BareKit.xcframework/ios-arm64_x86_64-simulator/"
+            } else {
+                "ios/BareKit.xcframework/ios-arm64/"
+            };
+
+            extract_prebuilds(prefix, &dest);
+        }
         _ => panic!("Unsupported platform"),
     }
 
