@@ -13,31 +13,36 @@ pub fn autolink() {
     let src = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let project = src.parent().unwrap();
 
-    let entry = project.join("bare/app.js");
-    let entry = if entry.exists() {
+    let entry = Some(project.join("bare/app.js"));
+    let entry = if entry.as_ref().unwrap().exists() {
         entry
     } else {
-        project.join("bare/dist/app.js")
+        Some(project.join("bare/dist/app.js"))
     };
-    let entry = if entry.exists() {
+    let entry = if entry.as_ref().unwrap().exists() {
         entry
     } else {
-        project.join("bare/src/app.js")
+        Some(project.join("bare/src/app.js"))
     };
-    let entry = if entry.exists() {
+    let entry = if entry.as_ref().unwrap().exists() {
         entry
     } else {
-        project.join("src-bare/app.js")
+        Some(project.join("src-bare/app.js"))
     };
-    let entry = if entry.exists() {
+    let entry = if entry.as_ref().unwrap().exists() {
         entry
     } else {
-        project.join("src-bare/dist/app.js")
+        Some(project.join("src-bare/dist/app.js"))
     };
-    let entry = if entry.exists() {
+    let entry = if entry.as_ref().unwrap().exists() {
         entry
     } else {
-        project.join("src-bare/src/app.js")
+        Some(project.join("src-bare/src/app.js"))
+    };
+    let entry = if entry.as_ref().unwrap().exists() {
+        entry
+    } else {
+        None
     };
 
     let resource_dir = env::var("DEP_TAURI_PLUGIN_BARE_KIT_RESOURCE_DIR").unwrap();
@@ -50,11 +55,11 @@ pub fn autolink() {
     };
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
     let arch = match &*arch {
-        "armv7" => "arm",
+        "arm" => "arm",
         "aarch64" => "arm64",
         "i686" => "ia32",
         "x86_64" => "x64",
-        _ => panic!("Unsupported architecture"),
+        arch => panic!("Unsupported architecture: {arch}"),
     };
 
     if vec!["darwin", "linux", "win32"].contains(&platform) {
@@ -84,21 +89,24 @@ pub fn autolink() {
             .status()
             .unwrap()
             .success());
-        assert!(Command::new(NPX)
-            .current_dir(project)
-            .args(vec![
-                "--yes",
-                "bare-pack",
-                "--host",
-                &*host,
-                "--linked",
-                "--out",
-                project.join("app.bundle.json").to_str().unwrap(),
-                entry.to_str().unwrap(),
-            ])
-            .status()
-            .unwrap()
-            .success());
+
+        if let Some(entry) = &entry {
+            assert!(Command::new(NPX)
+                .current_dir(project)
+                .args(vec![
+                    "--yes",
+                    "bare-pack",
+                    "--host",
+                    &*host,
+                    "--linked",
+                    "--out",
+                    project.join("app.bundle.json").to_str().unwrap(),
+                    entry.to_str().unwrap(),
+                ])
+                .status()
+                .unwrap()
+                .success());
+        }
 
         println!("cargo::rustc-link-arg=-Wl,-rpath,@executable_path/");
         println!("cargo::rustc-link-search=framework={resource_dir}");
@@ -129,7 +137,7 @@ pub fn autolink() {
         let arch = match arch {
             "arm64" => "arm64",
             "x64" => "x86_64",
-            _ => panic!("Unsupported architecture"),
+            arch => panic!("Unsupported architecture: {arch}"),
         };
         let profile = env::var("PROFILE").unwrap();
         let out = src.join(format!("gen/apple/Externals/{arch}/{profile}"));
@@ -148,21 +156,24 @@ pub fn autolink() {
             .status()
             .unwrap()
             .success());
-        assert!(Command::new(NPX)
-            .current_dir(project)
-            .args(vec![
-                "--yes",
-                "bare-pack",
-                "--host",
-                &*host,
-                "--linked",
-                "--out",
-                project.join("app.bundle.json").to_str().unwrap(),
-                entry.to_str().unwrap(),
-            ])
-            .status()
-            .unwrap()
-            .success());
+
+        if let Some(entry) = &entry {
+            assert!(Command::new(NPX)
+                .current_dir(project)
+                .args(vec![
+                    "--yes",
+                    "bare-pack",
+                    "--host",
+                    &*host,
+                    "--linked",
+                    "--out",
+                    project.join("app.bundle.json").to_str().unwrap(),
+                    entry.to_str().unwrap(),
+                ])
+                .status()
+                .unwrap()
+                .success());
+        }
 
         copy_dir_all(
             PathBuf::from(&*resource_dir).join("BareKit.framework"),
@@ -174,8 +185,63 @@ pub fn autolink() {
     }
 
     if platform == "android" {
-        println!("cargo::rustc-link-arg=-Wl,-rpath,$ORIGIN");
-        println!("cargo::rustc-link-search=native={resource_dir}");
+        let host = format!("{platform}-{arch}");
+        let arch = match &*arch {
+            "arm" => "armeabi-v7a",
+            "arm64" => "arm64-v8a",
+            "ia32" => "x86",
+            "x64" => "x86_64",
+            arch => panic!("Unsupported architecture: {arch}"),
+        };
+        let out = src.join("gen/android/app/src/main/jniLibs");
+
+        assert!(Command::new(NPX)
+            .current_dir(project)
+            .args(vec![
+                "--yes",
+                "bare-link",
+                "--host",
+                &*host,
+                "--out",
+                out.to_str().unwrap(),
+                project.to_str().unwrap(),
+            ])
+            .status()
+            .unwrap()
+            .success());
+
+        if let Some(entry) = &entry {
+            assert!(Command::new(NPX)
+                .current_dir(project)
+                .args(vec![
+                    "--yes",
+                    "bare-pack",
+                    "--host",
+                    &*host,
+                    "--linked",
+                    "--out",
+                    project.join("app.bundle.json").to_str().unwrap(),
+                    entry.to_str().unwrap(),
+                ])
+                .status()
+                .unwrap()
+                .success());
+        }
+
+        let out = out.join(arch);
+
+        fs::copy(
+            PathBuf::from(&*resource_dir).join("libbare-kit.so"),
+            out.join("libbare-kit.so"),
+        )
+        .unwrap();
+        fs::copy(
+            PathBuf::from(&*resource_dir).join("libc++_shared.so"),
+            out.join("libc++_shared.so"),
+        )
+        .unwrap();
+
+        println!("cargo::rustc-link-search=native={}", out.display());
         println!("cargo::rustc-link-lib=bare-kit");
     }
 

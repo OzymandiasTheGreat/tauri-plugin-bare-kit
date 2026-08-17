@@ -51,7 +51,20 @@ fn main() {
 
             extract_prebuilds(prefix, &dest);
         }
-        _ => panic!("Unsupported platform"),
+        "android" => {
+            let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+            let arch = match &*arch {
+                "arm" => "armeabi-v7a",
+                "aarch64" => "arm64-v8a",
+                "i686" => "x86",
+                "x86_64" => "x86_64",
+                arch => panic!("Unsupported architecture: {arch}"),
+            };
+            let prefix = format!("android/bare-kit/jni/{arch}/");
+
+            extract_prebuilds(&*prefix, &dest);
+        }
+        platform => panic!("Unsupported platform: {platform}"),
     }
 
     println!("cargo::metadata=RESOURCE_DIR={}", dest.display());
@@ -116,47 +129,6 @@ fn get_prebuilds() -> ZipArchive<fs::File> {
         io::copy(&mut response, &mut archive).unwrap();
         ZipArchive::new(archive).unwrap()
     }
-}
-
-fn build_for_android<P: AsRef<Path>>(tauri_root: &P) {
-    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
-    let arch = match &*arch {
-        "aarch64" => "arm64",
-        "x86" => "ia32",
-        "x86_64" => "x64",
-        arch => arch,
-    };
-    let abi = match &*arch {
-        "arm" => "armeabi-v7a",
-        "arm64" => "arm64-v8a",
-        "ia32" => "x86",
-        "x64" => "x86_64",
-        abi => abi,
-    };
-    let dest = tauri_root
-        .as_ref()
-        .join(format!("gen/android/app/src/main/jniLibs/{abi}"));
-
-    println!(
-        "cargo::rustc-link-search=native={}",
-        dest.join(arch).display()
-    );
-    println!("cargo::rustc-link-lib=bare-kit");
-}
-
-fn build_for_ios<P: AsRef<Path>>(tauri_root: &P) {
-    let arch = &*env::var("CARGO_CFG_TARGET_ARCH").unwrap();
-    let arch = match arch {
-        "aarch64" => "arm64",
-        arch => arch,
-    };
-    let profile = env::var("PROFILE").unwrap();
-    let dest = tauri_root
-        .as_ref()
-        .join(format!("gen/apple/Externals/{arch}/{profile}"));
-
-    println!("cargo::rustc-link-search=framework={}", dest.display());
-    println!("cargo::rustc-link-lib=framework=BareKit");
 }
 
 fn build_for_linux<P: AsRef<Path>>() {
