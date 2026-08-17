@@ -246,12 +246,105 @@ pub fn autolink() {
     }
 
     if platform == "linux" {
+        let out = PathBuf::from(env::var("OUT_DIR").unwrap());
+        let host = format!("{platform}-{arch}");
+
+        assert!(Command::new(NPX)
+            .current_dir(project)
+            .args(vec![
+                "--yes",
+                "bare-link",
+                "--host",
+                &*host,
+                "--out",
+                out.to_str().unwrap(),
+                project.to_str().unwrap(),
+            ])
+            .status()
+            .unwrap()
+            .success());
+
+        if let Some(entry) = &entry {
+            assert!(Command::new(NPX)
+                .current_dir(project)
+                .args(vec![
+                    "--yes",
+                    "bare-pack",
+                    "--host",
+                    &*host,
+                    "--linked",
+                    "--out",
+                    project.join("app.bundle.json").to_str().unwrap(),
+                    entry.to_str().unwrap(),
+                ])
+                .status()
+                .unwrap()
+                .success());
+        }
+
+        copy_dir_all(out.join("lib"), PathBuf::from(&*resource_dir));
+
         println!("cargo::rustc-link-arg=-Wl,-rpath=$ORIGIN");
         println!("cargo::rustc-link-search=native={resource_dir}");
-        println!("cargo::rustc-link-lib=bare-kit");
+
+        for lib in fs::read_dir(&resource_dir).unwrap().filter_map(|e| {
+            if let Ok(e) = e {
+                let fname = e.file_name().to_string_lossy().to_string();
+
+                return if fname.starts_with("lib") && fname.ends_with(".so") {
+                    Some(fname)
+                } else {
+                    None
+                };
+            }
+            None
+        }) {
+            let lname = lib
+                .strip_prefix("lib")
+                .unwrap()
+                .strip_suffix(".so")
+                .unwrap();
+
+            println!("cargo::rustc-link-lib={lname}");
+        }
     }
 
     if platform == "win32" {
+        let host = format!("{platform}-{arch}");
+
+        assert!(Command::new(NPX)
+            .current_dir(project)
+            .args(vec![
+                "--yes",
+                "bare-link",
+                "--host",
+                &*host,
+                "--out",
+                &*resource_dir,
+                project.to_str().unwrap(),
+            ])
+            .status()
+            .unwrap()
+            .success());
+
+        if let Some(entry) = &entry {
+            assert!(Command::new(NPX)
+                .current_dir(project)
+                .args(vec![
+                    "--yes",
+                    "bare-pack",
+                    "--host",
+                    &*host,
+                    "--linked",
+                    "--out",
+                    project.join("app.bundle.json").to_str().unwrap(),
+                    entry.to_str().unwrap(),
+                ])
+                .status()
+                .unwrap()
+                .success());
+        }
+
         println!("cargo::rustc-link-search=native={resource_dir}");
         println!("cargo::rustc-link-lib=dylib=bare-kit");
     }

@@ -64,6 +64,47 @@ fn main() {
 
             extract_prebuilds(&*prefix, &dest);
         }
+        "linux" => {
+            let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+            let arch = match &*arch {
+                "aarch64" => "arm64",
+                "x86_64" => "x64",
+                arch => panic!("Unsupported architecture: {arch}"),
+            };
+            let prefix = format!("linux/{arch}/");
+
+            extract_prebuilds(&prefix, &dest);
+
+            if cfg!(feature = "tests") {
+                println!("cargo::rustc-link-arg=-Wl,-rpath={}", dest.display());
+                println!("cargo::rustc-link-search=native={}", dest.display());
+                println!("cargo::rustc-link-lib=bare-kit");
+            }
+        }
+        "windows" => {
+            let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+            let arch = match &*arch {
+                "aarch64" => "arm64",
+                "x86_64" => "x64",
+                arch => panic!("Unsupported architecture: {arch}"),
+            };
+            let prefix = format!("win32/{arch}/");
+
+            extract_prebuilds(&prefix, &dest);
+
+            println!("cargo::rustc-link-search=native={}", dest.display());
+            println!("cargo::rustc-link-lib=dylib=bare-kit");
+
+            if cfg!(feature = "tests") {
+                let profile = env::var("PROFILE").unwrap();
+
+                fs::copy(
+                    dest.join("bare-kit.dll"),
+                    src.join(format!("target/{profile}/bare-kit.dll")),
+                )
+                .unwrap();
+            }
+        }
         platform => panic!("Unsupported platform: {platform}"),
     }
 
@@ -128,35 +169,6 @@ fn get_prebuilds() -> ZipArchive<fs::File> {
 
         io::copy(&mut response, &mut archive).unwrap();
         ZipArchive::new(archive).unwrap()
-    }
-}
-
-fn build_for_linux<P: AsRef<Path>>() {
-    if cfg!(feature = "tests") {
-        println!("cargo::rustc-link-arg=-Wl,-rpath=//");
-    } else {
-        println!("cargo::rustc-link-arg=-Wl,-rpath=$ORIGIN");
-    }
-
-    println!("cargo::rustc-link-search=native=//");
-    println!("cargo::rustc-link-lib=bare-kit");
-}
-
-fn build_for_windows<P: AsRef<Path>>(src: &P) {
-    let src = src.as_ref();
-    let out = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let profile = env::var("PROFILE").unwrap();
-    let dest = out.join("bare-kit");
-
-    println!("cargo::rustc-link-search=native={}", dest.display());
-    println!("cargo::rustc-link-lib=dylib=bare-kit");
-
-    if cfg!(feature = "tests") {
-        fs::copy(
-            dest.join("bare-kit.dll"),
-            src.join(format!("target/{profile}/bare-kit.dll")),
-        )
-        .unwrap();
     }
 }
 
