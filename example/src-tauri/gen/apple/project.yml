@@ -94,6 +94,30 @@ targets:
       - sdk: UIKit.framework
       - sdk: WebKit.framework
       - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/BareKit.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-buffer.3.6.0.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-type.1.1.0.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-inspect.3.1.4.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-os.3.9.1.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-url.2.4.3.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/sodium-native.5.1.0.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/udx-native.1.19.2.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-fs.4.7.1.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-abort.2.0.13.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-hrtime.2.1.1.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-signals.4.2.0.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-pipe.4.1.5.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-tty.5.1.0.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-stdio.1.0.2.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-os.3.9.3.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-buffer.3.6.1.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-url.2.4.5.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-fs.4.7.2.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-pipe.4.2.3.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-structured-clone.1.6.0.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-dns.2.1.4.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-tcp.2.5.4.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-subprocess.6.1.0.framework
+      - framework: $(PROJECT_DIR)/Externals/$(NATIVE_ARCH)/$(CONFIGURATION)/bare-module-lexer.1.6.3.framework
     preBuildScripts:
       - script: npm run -- tauri ios xcode-script -v --platform
           ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?}

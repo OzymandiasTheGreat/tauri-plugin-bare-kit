@@ -64,11 +64,10 @@
     "@tauri-apps/api": "^2.11.0",
     "b4a": "^1.8.1",
     "bare-events": "^2.8.3",
-    "bare-stream": "^2.13.1",
-    "cmake-bare": "^1.8.0",
-    "cmake-bare-bundle": "^3.0.0",
-    "cmake-fetch": "^1.5.1",
+    "bare-link": "^3.3.0",
+    "bare-pack": "^2.2.1",
     "semver": "^7.8.1",
+    "streamx": "^2.28.0",
     "yaml": "^2.9.0"
   }
 }
