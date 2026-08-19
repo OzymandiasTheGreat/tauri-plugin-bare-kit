@@ -59,4 +59,4 @@ jobs:
           disk-size: 512M
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           working-directory: tests
-          script: ./test-android.sh
+          script: bash ./test-android.sh

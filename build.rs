@@ -1,6 +1,6 @@
 use std::{
     env, fs,
-    io::{self, Seek, Write},
+    io::{self, Write},
     path::{Path, PathBuf},
 };
 use zip::ZipArchive;
@@ -155,8 +155,7 @@ fn get_prebuilds() -> ZipArchive<fs::File> {
     let uri = format!(
         "https://github.com/holepunchto/bare-kit/releases/download/v{VERSION}/prebuilds.zip"
     );
-    let output =
-        PathBuf::from(env::var("OUT_DIR").unwrap()).join(format!("prebuilds/{VERSION}.zip"));
+    let output = env::temp_dir().join(format!("tauri-plugin-bare-kit/{VERSION}.zip"));
 
     if fs::exists(&output).unwrap() {
         let result = ZipArchive::new(fs::File::open(&output).unwrap());
