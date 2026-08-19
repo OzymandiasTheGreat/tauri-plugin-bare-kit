@@ -157,19 +157,23 @@ fn get_prebuilds() -> ZipArchive<fs::File> {
     let output = env::temp_dir().join(format!("tauri-plugin-bare-kit/{VERSION}.zip"));
 
     if fs::exists(&output).unwrap() {
-        ZipArchive::new(fs::File::open(output).unwrap()).unwrap()
-    } else {
-        fs::create_dir_all(output.parent().unwrap()).unwrap();
+        let result = ZipArchive::new(fs::File::open(&output).unwrap());
 
-        let mut response = reqwest::blocking::get(uri)
-            .unwrap()
-            .error_for_status()
-            .unwrap();
-        let mut archive = fs::File::create(output).unwrap();
-
-        io::copy(&mut response, &mut archive).unwrap();
-        ZipArchive::new(archive).unwrap()
+        if let Ok(archive) = result {
+            return archive;
+        }
     }
+
+    fs::create_dir_all(&output.parent().unwrap()).unwrap();
+
+    let mut response = reqwest::blocking::get(uri)
+        .unwrap()
+        .error_for_status()
+        .unwrap();
+    let mut archive = fs::File::create(&output).unwrap();
+
+    io::copy(&mut response, &mut archive).unwrap();
+    ZipArchive::new(archive).unwrap()
 }
 
 fn generate_bindings<S: AsRef<Path>, O: AsRef<Path>>(src: &S, out: &O) {
