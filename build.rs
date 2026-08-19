@@ -1,5 +1,6 @@
 use std::{
-    env, fs, io,
+    env, fs,
+    io::{self, Write},
     path::{Path, PathBuf},
 };
 use zip::ZipArchive;
@@ -170,9 +171,11 @@ fn get_prebuilds() -> ZipArchive<fs::File> {
         .unwrap()
         .error_for_status()
         .unwrap();
+    let mut archive = fs::File::create(&output).unwrap();
 
-    io::copy(&mut response, &mut fs::File::create(&output).unwrap()).unwrap();
-    ZipArchive::new(fs::File::create(&output).unwrap()).unwrap()
+    io::copy(&mut response, &mut archive).unwrap();
+    archive.flush().unwrap();
+    ZipArchive::new(archive).unwrap()
 }
 
 fn generate_bindings<S: AsRef<Path>, O: AsRef<Path>>(src: &S, out: &O) {
