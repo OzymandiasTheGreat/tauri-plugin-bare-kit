@@ -1,6 +1,6 @@
 use std::{
     env, fs,
-    io::{self, Write},
+    io::{self, Seek, Write},
     path::{Path, PathBuf},
 };
 use zip::ZipArchive;
@@ -174,8 +174,19 @@ fn get_prebuilds() -> ZipArchive<fs::File> {
         .unwrap();
     let mut archive = fs::File::create(&output).unwrap();
 
+    println!("cargo::warning=status: {}", response.status());
+    println!(
+        "cargo::warning=content-type: {:?}",
+        response.headers().get("content-type")
+    );
+    println!(
+        "cargo::warning=content-length: {:?}",
+        response.content_length()
+    );
+
     io::copy(&mut response, &mut archive).unwrap();
     archive.flush().unwrap();
+    archive.seek(io::SeekFrom::Start(0)).unwrap();
     ZipArchive::new(archive).unwrap()
 }
 
