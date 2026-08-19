@@ -18,7 +18,8 @@
     "build": "npm run build:bare && npm run build:expo",
     "build:bare": "tsc -p src-bare",
     "build:expo": "expo export --platform web",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "tauri": "tauri"
   },
   "dependencies": {
     "@hyperswarm/rpc": "^3.5.0",
