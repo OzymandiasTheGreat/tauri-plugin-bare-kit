@@ -345,8 +345,10 @@ pub fn autolink() {
                 .success());
         }
 
-        println!("cargo::rustc-link-search=native={resource_dir}");
-        println!("cargo::rustc-link-lib=dylib=bare-kit");
+        println!(
+            "cargo:rustc-link-arg=/DEF:{}",
+            PathBuf::from(&*resource_dir).join("bare-kit.def").display(),
+        );
     }
 }
 
