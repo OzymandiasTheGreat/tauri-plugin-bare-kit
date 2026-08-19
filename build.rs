@@ -155,7 +155,8 @@ fn get_prebuilds() -> ZipArchive<fs::File> {
     let uri = format!(
         "https://github.com/holepunchto/bare-kit/releases/download/v{VERSION}/prebuilds.zip"
     );
-    let output = env::temp_dir().join(format!("tauri-plugin-bare-kit/{VERSION}.zip"));
+    let output =
+        PathBuf::from(env::var("OUT_DIR").unwrap()).join(format!("prebuilds/{VERSION}.zip"));
 
     if fs::exists(&output).unwrap() {
         let result = ZipArchive::new(fs::File::open(&output).unwrap());
