@@ -101,7 +101,10 @@ jobs:
 
       - name: Run tests
         working-directory: tests
-        run: npm run test:ios
+        run: |
+          export CC_aarch64_apple_darwin="$(xcrun --sdk macosx --find clang)"
+          export CFLAGS_aarch64_apple_darwin="-isysroot $(xcrun --sdk macosx --show-sdk-path)"
+          npm run test:ios
 
   android-tests:
     name: Android Tests
