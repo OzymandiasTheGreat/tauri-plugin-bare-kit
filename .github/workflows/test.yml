@@ -74,10 +74,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ZhongRuoyu/setup-llvm@v0
-        with:
-          llvm-version: 22
-
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-ios
@@ -101,7 +97,7 @@ jobs:
 
       - name: Build test Tauri app
         working-directory: tests
-        run: npm run tauri ios build -- --ci --target aarch64-sim
+        run: npm run tauri ios build -- --ci --target aarch64-sim -- -vv
 
       - name: Run tests
         working-directory: tests
