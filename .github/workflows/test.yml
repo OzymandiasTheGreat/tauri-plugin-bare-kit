@@ -74,6 +74,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - uses: ZhongRuoyu/setup-llvm@v0
+        with:
+          llvm-version: 22
+
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-ios
@@ -154,4 +158,4 @@ jobs:
           disk-size: 512M
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           working-directory: tests
-          script: bash ./test-android.sh;
+          script: bash ./test-android.sh
