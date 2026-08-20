@@ -35,8 +35,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: 'npm'
-          cache-dependency-path: 'tests/package-lock.json'
+          cache: "npm"
+          cache-dependency-path: "tests/package-lock.json"
 
       - name: Install plugin dependencies
         run: npm ci --ignore-scripts
@@ -59,4 +59,7 @@ jobs:
           disk-size: 512M
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           working-directory: tests
-          script: bash ./test-android.sh
+          script: >-
+            bash ./test-android.sh;
+            echo "TESTS FINISHED";
+            ps -ef | grep -E '[a]ppium|[c]hromedriver|[c]rashpad|[e]mulator'
