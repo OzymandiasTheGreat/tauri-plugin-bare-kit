@@ -167,6 +167,10 @@ fn get_prebuilds() -> ZipArchive<fs::File> {
 
     fs::create_dir_all(&output.parent().unwrap()).unwrap();
 
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .unwrap();
+
     let mut response = reqwest::blocking::get(uri)
         .unwrap()
         .error_for_status()
