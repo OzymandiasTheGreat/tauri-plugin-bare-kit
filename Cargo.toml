@@ -1,7 +1,7 @@
 
 [package]
 name = 'tauri-plugin-bare-kit'
-version = '0.2.3'
+version = '0.3.0'
 authors = ['Tomas Ravinskas <tomas@tomasrav.me>']
 description = 'Effortless JavaScript backends for Tauri apps - Android 🤖 iOS 📱Linux 🐧 Macos 🖥️ Windows 💩'
 readme = 'README.md'
@@ -11,13 +11,13 @@ keywords = ['javascript', 'cross-platform', 'tauri-plugin', 'bare-kit']
 edition = '2021'
 rust-version = '1.77.2'
 exclude = [
-  '/.github',
-  '/.vscode',
-  '/api',
-  '/example',
-  '/node_modules',
-  '/scripts',
-  '/tests',
+	'/.github',
+	'/.vscode',
+	'/api',
+	'/example',
+	'/node_modules',
+	'/scripts',
+	'/tests',
 ]
 links = 'tauri-plugin-bare-kit'
 
@@ -35,19 +35,19 @@ base64 = '0.22.1'
 rand = '0.10'
 
 [build-dependencies]
-reqwest = { version = "0.13", default-features = false, features = [
-  "blocking",
-  "rustls-no-provider",
+reqwest = { version = '0.13', default-features = false, features = [
+	'blocking',
+	'rustls-no-provider',
 ] }
 bindgen = '0.72.1'
-ring = "0.17"
-rustls = { version = "0.23", default-features = false, features = [
-  "ring",
-  "std",
-  "tls12",
+ring = '0.17'
+rustls = { version = '0.23', default-features = false, features = [
+	'ring',
+	'std',
+	'tls12',
 ] }
 tauri-plugin = { version = '2.6.2', features = ['build'] }
-zip = "8"
+zip = '8'
 
 [features]
 default = ['runtime']
