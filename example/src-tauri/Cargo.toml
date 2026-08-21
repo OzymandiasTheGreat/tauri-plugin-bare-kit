@@ -6,7 +6,7 @@ version = '0.1.0'
 description = 'An example P2P chat app powered by Tauri and Bare'
 authors = ['Tomas Ravinskas <tomas@tomasrav.me>']
 license = 'Apache-2.0'
-repository = 'https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit/tree/main/example'
+repository = 'https://github.com/getbullet-app/tauri-plugin-bare-kit/tree/main/example'
 edition = '2021'
 rust-version = '1.77.2'
 

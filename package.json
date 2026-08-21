@@ -28,12 +28,12 @@
     "tauri-plugin",
     "bare-kit"
   ],
-  "homepage": "https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit",
+  "homepage": "https://github.com/getbullet-app/tauri-plugin-bare-kit",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit.git"
+    "url": "https://github.com/getbullet-app/tauri-plugin-bare-kit.git"
   },
-  "bugs": "https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit/issues",
+  "bugs": "https://github.com/getbullet-app/tauri-plugin-bare-kit/issues",
   "main": "./api/index.js",
   "types": "./api/index.d.ts",
   "exports": {

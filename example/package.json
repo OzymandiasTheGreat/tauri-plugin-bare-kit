@@ -9,7 +9,7 @@
   },
   "license": "Apache-2.0",
   "description": "An example P2P chat app powered by Tauri and Bare",
-  "repository": "https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit/tree/main/example",
+  "repository": "https://github.com/getbullet-app/tauri-plugin-bare-kit/tree/main/example",
   "main": "expo-router/entry",
   "scripts": {
     "start": "npm run start:bare & npm run start:expo",
