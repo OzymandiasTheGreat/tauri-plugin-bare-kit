@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -40,8 +40,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: "npm"
-          cache-dependency-path: "package-lock.json"
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Run unit tests
         if: matrix.os != 'windows-latest'
@@ -85,8 +85,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: "npm"
-          cache-dependency-path: "tests/package-lock.json"
+          cache: 'npm'
+          cache-dependency-path: 'tests/package-lock.json'
 
       - name: Install plugin dependencies
         run: npm ci --ignore-scripts
@@ -130,8 +130,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: "npm"
-          cache-dependency-path: "tests/package-lock.json"
+          cache: 'npm'
+          cache-dependency-path: 'tests/package-lock.json'
 
       - name: Install plugin dependencies
         run: npm ci --ignore-scripts
