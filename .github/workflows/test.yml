@@ -1,4 +1,4 @@
-name: Run Tests
+name: Run Test Suite
 
 on:
   workflow_dispatch:
@@ -25,15 +25,9 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: git config --global core.longpaths true
 
-      - uses: awalsh128/cache-apt-pkgs-action@latest
+      - name: Install apt dependencies
         if: matrix.os == 'ubuntu-latest'
-        with:
-          packages: libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xvfb
-          version: '1.0'
-
-      - uses: ZhongRuoyu/setup-llvm@v0
-        with:
-          llvm-version: 22
+        run: sudo apt update && sudo apt install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -80,10 +74,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ZhongRuoyu/setup-llvm@v0
-        with:
-          llvm-version: 22
-
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-ios
@@ -112,3 +102,56 @@ jobs:
       - name: Run tests
         working-directory: tests
         run: npm run test:ios
+
+  android-tests:
+    name: Android Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install apt dependencies
+        run: sudo apt update && sudo apt install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tests/src-tauri
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: 'tests/package-lock.json'
+
+      - name: Install plugin dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install test app dependencies
+        working-directory: tests
+        run: npm ci --ignore-scripts
+
+      - name: Build test Tauri app
+        working-directory: tests
+        run: npm run tauri android build -- --debug --ci --apk --target x86_64
+
+      - name: Run tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          ndk: 28.2.13676358
+          arch: x86_64
+          target: google_apis
+          disk-size: 512M
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          working-directory: tests
+          script: bash ./test-android.sh

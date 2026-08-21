@@ -27,8 +27,17 @@ base64 = '0.22.1'
 rand = '0.10'
 
 [build-dependencies]
+reqwest = { version = "0.13", default-features = false, features = [
+  "blocking",
+  "rustls-no-provider",
+] }
 bindgen = '0.72.1'
-reqwest = { version = "0.13", features = ["blocking"] }
+ring = "0.17"
+rustls = { version = "0.23", default-features = false, features = [
+  "ring",
+  "std",
+  "tls12",
+] }
 tauri-plugin = { version = '2.6.2', features = ['build'] }
 zip = "8"
 
