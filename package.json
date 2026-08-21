@@ -51,9 +51,8 @@
     "README.md"
   ],
   "scripts": {
-    "bump-version": "node ./scripts/bump-version.mjs",
+    "version": "node ./scripts/version.mjs",
     "postinstall": "node ./scripts/postinstall.mjs",
-    "update-bare-kit": "node ./scripts/update-bare-kit.mjs",
     "test": "npm run test:cargo && npm run test:build && npm run test:wdio",
     "test:build": "npm run --prefix tests tauri build -- -- --target-dir ../../target",
     "test:wdio": "npm run --prefix tests test",
@@ -66,7 +65,6 @@
     "bare-events": "^2.8.3",
     "bare-link": "^3.3.0",
     "bare-pack": "^2.2.1",
-    "semver": "^7.8.1",
     "streamx": "^2.28.0",
     "yaml": "^2.9.0"
   }
