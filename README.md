@@ -16,7 +16,7 @@ Bare was built on V8 and libuv, similar to Node. What's more, Bare has built-in 
 
 ### [BareKit](https://github.com/holepunchto/bare-kit)
 
-BareKit is an SDK for Bare for native application development. It makes embedding Bare in your application almost trivial.
+BareKit is an SDK for Bare for native application development. It makes embedding Bare in your application trivial.
 
 > \<BareKit\> [...] provides a web worker-like API to start and manage isolated Bare threads, called worklets, that expose an IPC abstraction with bindings for various languages.
 
@@ -31,7 +31,6 @@ It also provides autolinking of native addons for JavaScript to avoid headaches 
 Prerequisites:
 
 - Node/npm
-- Clang
 
 Then just:
 
@@ -42,7 +41,7 @@ tauri add bare-kit
 ### Note about iOS
 
 Tauri's iOS build heavily depends on XCode so autolinking is trickier to implement. If you haven't yet generated iOS project at the time you install `tauri-plugin-bare-kit` `xcodebuild` will fail to find BareKit.
-Just delete `node_modules` and run `npm install` again after generating iOS project and everything should work.
+Just run `npm install` again after generating iOS project and everything should work.
 
 ## Usage
 
@@ -66,9 +65,11 @@ IPC.on("data", (data) => console.log(b4a.toString(data)))
 IPC.write(b4a.from("Hello from Tauri!"))
 ```
 
-This will log `Hello from Tauri!` to the operating system log and `Hallo from Bare!` to Tauri's devtools console.
+This will log `Hello from Tauri!` to the operating system log and `Hello from Bare!` to Tauri's devtools console.
 
 For this plugin to find your entry point and generate a bundle for Bare, it looks for a file called `app.js` in several locations. First it looks for a folder in your project's root (next to `package.json` and `src-tauri`) called `bare` (Bare convention) or `src-bare` (Tauri convention). If this folder contains folders `src` or `dist` (in case you're transpiling your sources, e.g. TypeScript) it looks in them too. Using the entry point, this plugin traverses `node_modules` to collect dependencies and produces a single file bundle in your root folder called `app.bundle.json` and dependency manifest `app.bundle.json.d`. You should add these files to your `.gitignore`. The JSON file is just a single JSON string containing the entire stringified bundle that you should import on your frontend and pass to Bare worklet.
+
+You can also pack your bundle manually using [bare-pack](https://github.com/holepunchto/bare-pack).
 
 ### API
 
@@ -108,7 +109,7 @@ Exit suspended state and resume I/O for all worklets.
 
 #### `await Worklet.wakeup(deadline)`
 
-Temporalily wake suspended worklets to perform additional work (e.g. handle a notification).
+Temporarily wake suspended worklets to perform additional work (e.g. handle a notification).
 
 ```typescript
 // Time allocated to perform given task
@@ -165,7 +166,7 @@ Exit suspended state and resume I/O.
 
 #### `await worklet.wakeup(deadline)`
 
-Temporalily wake suspended worklet to perform additional work (e.g. handle a notification).
+Temporarily wake suspended worklet to perform additional work (e.g. handle a notification).
 
 ```typescript
 // Time allocated to perform given task
