@@ -10,7 +10,15 @@ repository = 'https://github.com/OzymandiasTheGreat/tauri-plugin-bare-kit'
 keywords = ['javascript', 'cross-platform', 'tauri-plugin', 'bare-kit']
 edition = '2021'
 rust-version = '1.77.2'
-exclude = ['/.vscode', '/api', '/example', '/node_modules', '/scripts']
+exclude = [
+  '/.github',
+  '/.vscode',
+  '/api',
+  '/example',
+  '/node_modules',
+  '/scripts',
+  '/tests',
+]
 links = 'tauri-plugin-bare-kit'
 
 [dependencies]

@@ -1,10 +1,15 @@
-name: Run Test Suite
+name: Integrate
 
 on:
-  workflow_dispatch:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -12,7 +17,7 @@ concurrency:
 
 jobs:
   desktop-tests:
-    name: Desktop Tests (${{ matrix.os }})
+    name: Test / (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -69,7 +74,7 @@ jobs:
         run: npm test
 
   ios-tests:
-    name: iOS Tests
+    name: Test / ios
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v6
@@ -104,7 +109,7 @@ jobs:
         run: npm run test:ios
 
   android-tests:
-    name: Android Tests
+    name: Test / android
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
