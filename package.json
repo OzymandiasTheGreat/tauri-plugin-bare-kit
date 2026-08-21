@@ -53,7 +53,6 @@
   "scripts": {
     "version": "node ./scripts/version.mjs",
     "postinstall": "node ./scripts/postinstall.mjs",
-    "update-bare-kit": "node ./scripts/update-bare-kit.mjs",
     "test": "npm run test:cargo && npm run test:build && npm run test:wdio",
     "test:build": "npm run --prefix tests tauri build -- -- --target-dir ../../target",
     "test:wdio": "npm run --prefix tests test",
