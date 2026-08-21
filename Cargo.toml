@@ -1,7 +1,7 @@
 
 [package]
 name = 'tauri-plugin-bare-kit'
-version = '0.3.0'
+version = '0.3.1'
 authors = ['Tomas Ravinskas <tomas@tomasrav.me>']
 description = 'Effortless JavaScript backends for Tauri apps - Android 🤖 iOS 📱Linux 🐧 Macos 🖥️ Windows 💩'
 readme = 'README.md'
